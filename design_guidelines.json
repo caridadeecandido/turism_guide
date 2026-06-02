@@ -1,0 +1,151 @@
+{
+  "project_info": {
+    "name": "Turismo que se Sente",
+    "description": "An accessible tourism guide mobile app for visually impaired people exploring Natal, RN (Brazil).",
+    "theme": "Dark Mode (High Contrast)",
+    "archetype": "Custom Accessible Dark Theme (derived from Luxury & Performance elements for high visibility)"
+  },
+  "colors": {
+    "brand_primary": {
+      "base": "#7C3AED",
+      "hover": "#6D28D9",
+      "light": "#8B5CF6",
+      "description": "Purple/Violet derived from the official project logo. Used for primary CTAs and active states."
+    },
+    "background": {
+      "default": "#0B1120",
+      "surface": "#1E293B",
+      "surface_elevated": "#334155",
+      "description": "Dark Navy background for premium feel while reducing eye strain."
+    },
+    "text": {
+      "primary": "#F8FAFC",
+      "secondary": "#CBD5E1",
+      "inverse": "#0B1120",
+      "accent": "#A78BFA",
+      "description": "High contrast white/slate text to ensure readability for low-vision users."
+    },
+    "status": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Manrope",
+      "body": "Lexend"
+    },
+    "sizes": {
+      "h1": "text-3xl font-bold tracking-tight",
+      "h2": "text-2xl font-bold tracking-tight",
+      "h3": "text-xl font-semibold",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm font-medium",
+      "details": "Heading bold 22-26px as per spec, body minimum 16px for readability."
+    }
+  },
+  "spacing_and_layout": {
+    "global_padding": "16px (p-4 in Tailwind)",
+    "container": "w-full max-w-md mx-auto",
+    "touch_targets": {
+      "minimum_size": "48px (h-12 w-12)",
+      "description": "Crucial for motor accessibility. Buttons and inputs must be large and easily tappable."
+    },
+    "border_radius": {
+      "cards": "12px (rounded-xl)",
+      "inputs": "24px (rounded-full)",
+      "buttons": "24px (rounded-full)"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#7C3AED] text-white h-12 px-6 rounded-full font-bold flex items-center justify-center gap-2",
+      "secondary": "bg-[#1E293B] border-2 border-[#334155] text-white h-12 px-6 rounded-full font-bold flex items-center justify-center gap-2"
+    },
+    "cards": {
+      "tourist_spot": "bg-[#1E293B] rounded-xl border border-[#334155] overflow-hidden flex flex-col",
+      "category": "bg-[#334155] rounded-xl p-4 flex flex-col items-center justify-center gap-2"
+    },
+    "inputs": {
+      "search": "h-12 bg-[#0B1120] border-2 border-[#334155] rounded-full px-6 text-white focus:border-[#7C3AED] placeholder:text-slate-400"
+    },
+    "audio_player": {
+      "container": "bg-[#1E293B] rounded-xl p-6 border border-[#334155] mt-4",
+      "play_button": "w-16 h-16 rounded-full bg-[#7C3AED] flex items-center justify-center",
+      "progress_bar": "h-3 bg-[#334155] rounded-full overflow-hidden mt-6",
+      "progress_fill": "h-full bg-[#7C3AED]"
+    }
+  },
+  "accessibility_rules": {
+    "contrast": "All text must pass WCAG AAA contrast ratio against its background. Use Text Shadow over images.",
+    "screen_reader": "Every interactive element MUST have aria-label/accessibilityLabel.",
+    "testing": "All interactive elements must include 'data-testid' (e.g., data-testid='play-audio-button').",
+    "icons": "Use Lucide React icons. Always pair icons with text labels, do not rely on icons alone."
+  },
+  "screens": {
+    "home": {
+      "header": "Logo + Welcome message ('Olá, Explore Natal com a gente').",
+      "search": "Large search bar with voice input icon.",
+      "categories": "Grid of quick-access buttons (Atrações, Rotas, Perto, etc.).",
+      "featured": "Horizontal scroll of cards (Morro do Careca, Forte dos Reis Magos)."
+    },
+    "spot_detail": {
+      "hero": "Image max 40vh with dark gradient overlay.",
+      "content": "Title (26px), Accessibility Badges (Acessível, Piso Tátil).",
+      "action": "Massive 'Ouvir Audiodescrição' (Listen to audio) primary button.",
+      "info": "Detailed description in 16px text with good line height."
+    },
+    "audio_experience": {
+      "layout": "Centered large album art/image, Spot Title, Audio controls.",
+      "controls": "Skip back 10s, Huge Play/Pause, Skip forward 10s. Large seek bar.",
+      "transcript": "Scrollable text below player for deaf-blind or those who prefer reading."
+    },
+    "near_me": {
+      "layout": "List view. Category filters as horizontal pill buttons.",
+      "items": "Cards showing Spot Name, Distance (e.g., '1.2 km'), Accessibility rating."
+    },
+    "side_menu": {
+      "layout": "Full height drawer/menu. Profile at top.",
+      "links": "Favorites, History, Accessibility Settings, Language, Help.",
+      "emergency": "Red (bg-red-600) Emergency Call Button at the bottom."
+    }
+  },
+  "media": {
+    "logo": {
+      "url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+      "description": "Brand logo, Purple/Violet with accessibility infinity symbol. Used in Header/Splash screen."
+    },
+    "images": [
+      {
+        "category": "tourist_spot",
+        "name": "Praia de Ponta Negra",
+        "url": "https://images.pexels.com/photos/36186542/pexels-photo-36186542.jpeg"
+      },
+      {
+        "category": "tourist_spot",
+        "name": "Praia da Pipa",
+        "url": "https://images.pexels.com/photos/18336311/pexels-photo-18336311.jpeg"
+      },
+      {
+        "category": "tourist_spot",
+        "name": "Dunas de Genipabu",
+        "url": "https://images.pexels.com/photos/35772295/pexels-photo-35772295.jpeg"
+      },
+      {
+        "category": "tourist_spot",
+        "name": "Forte dos Reis Magos",
+        "url": "https://images.unsplash.com/photo-1704797390682-76479a29dc9a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxoaXN0b3JpY2FsJTIwZm9ydCUyMGJ5JTIwdGhlJTIwc2VhfGVufDB8fHx8MTc4MDM5MTE5MHww&ixlib=rb-4.1.0&q=85"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Build the application using React Native Expo with NativeWind or pure Tailwind CSS for Web.",
+    "Implement the dark navy background (#0B1120) strictly. Do not use generic gray or pure black.",
+    "Ensure all touchable elements have at least h-12 (48px) to comply with motor accessibility guidelines.",
+    "Use the provided image URLs for the specific tourist spots. Use the logo URL in the Header/Splash.",
+    "Implement the audiodescrição (audio description) player screen with prominent, high-contrast controls.",
+    "Include data-testid attributes on all interactive elements as requested in accessibility_rules."
+  ]
+}
