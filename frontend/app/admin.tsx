@@ -11,8 +11,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from "react-native";import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
@@ -58,7 +57,11 @@ export default function Admin() {
   const save = async () => {
     if (!editing) return;
     if (!editing.name || !editing.audio_description || !editing.image_url) {
-      Alert.alert("Atenção", "Nome, audiodescrição e URL da imagem são obrigatórios.");
+      if (Platform.OS === "web") {
+        window.alert("Nome, audiodescrição e URL da imagem são obrigatórios.");
+      } else {
+        Alert.alert("Atenção", "Nome, audiodescrição e URL da imagem são obrigatórios.");
+      }
       return;
     }
     try {
@@ -69,26 +72,48 @@ export default function Admin() {
       }
       setEditing(null);
       await load();
-      Alert.alert("Sucesso", "Ponto turístico salvo.");
+      if (Platform.OS === "web") {
+        window.alert("Ponto turístico salvo com sucesso.");
+      } else {
+        Alert.alert("Sucesso", "Ponto turístico salvo.");
+      }
     } catch (e: any) {
-      Alert.alert("Erro", String(e.message || e));
+      if (Platform.OS === "web") {
+        window.alert(`Erro: ${e.message || e}`);
+      } else {
+        Alert.alert("Erro", String(e.message || e));
+      }
     }
   };
 
   const remove = (spot: TouristSpot) => {
+    const doDelete = async () => {
+      try {
+        await api.deleteSpot(spot.id);
+        await load();
+      } catch (e: any) {
+        if (Platform.OS === "web") {
+          window.alert(`Erro ao excluir: ${e.message || e}`);
+        } else {
+          Alert.alert("Erro", String(e.message || e));
+        }
+      }
+    };
+
+    if (Platform.OS === "web") {
+      // RN-Web Alert.alert doesn't render multi-button confirms reliably.
+      // eslint-disable-next-line no-alert
+      if (window.confirm(`Excluir "${spot.name}"? Esta ação não pode ser desfeita.`)) {
+        doDelete();
+      }
+      return;
+    }
     Alert.alert(
       "Excluir ponto turístico?",
       `Tem certeza que deseja excluir "${spot.name}"?`,
       [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            await api.deleteSpot(spot.id);
-            await load();
-          },
-        },
+        { text: "Excluir", style: "destructive", onPress: doDelete },
       ],
     );
   };
