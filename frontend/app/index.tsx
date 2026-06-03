@@ -16,25 +16,40 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
+import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
+import { useSiteConfig } from "@/src/site-config";
+import { SealFooter } from "@/src/components/SealBranding";
 
 const QUICK_ACCESS = [
-  { key: "Praia", label: "Praias", icon: "umbrella-beach", lib: "mci" as const, route: "/near?category=Praia" },
-  { key: "História e Cultura", label: "História", icon: "castle", lib: "mci" as const, route: "/near?category=Hist%C3%B3ria%20e%20Cultura" },
-  { key: "Parque", label: "Parques", icon: "tree", lib: "mci" as const, route: "/near?category=Parque" },
-  { key: "Hotel", label: "Hospedagem", icon: "bed", lib: "mci" as const, route: "/near?category=Hotel" },
-  { key: "Cafeteria", label: "Alimentação", icon: "silverware-fork-knife", lib: "mci" as const, route: "/near?category=Cafeteria" },
-  { key: "Mirante", label: "Mirantes", icon: "binoculars", lib: "mci" as const, route: "/near?category=Mirante" },
+  { key: "Praia", labelKey: "Praias", icon: "umbrella-beach" },
+  { key: "História e Cultura", labelKey: "História", icon: "castle" },
+  { key: "Parque", labelKey: "Parques", icon: "tree" },
+  { key: "Hotel", labelKey: "Hospedagem", icon: "bed" },
+  { key: "Cafeteria", labelKey: "Alimentação", icon: "silverware-fork-knife" },
+  { key: "Mirante", labelKey: "Mirantes", icon: "binoculars" },
 ];
 
+const QUICK_ACCESS_EN = ["Beaches", "History", "Parks", "Lodging", "Food", "Viewpoints"];
+const QUICK_ACCESS_ES = ["Playas", "Historia", "Parques", "Alojamiento", "Comida", "Miradores"];
+
 export default function Home() {
+  const { user, signOut, language, setLanguage } = useAuth();
+  const { config } = useSiteConfig();
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const data = await api.listSpots();
+      const [data, location] = await Promise.all([
+        api.listSpots(),
+        coords ? Promise.resolve(coords) : getCurrentCoords(),
+      ]);
+      if (!coords && location) setCoords(location);
       setSpots(data);
     } catch (e) {
       console.warn("Failed to load spots", e);
@@ -42,7 +57,7 @@ export default function Home() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [coords]);
 
   useEffect(() => {
     load();
@@ -50,17 +65,27 @@ export default function Home() {
 
   const onRefresh = () => {
     setRefreshing(true);
+    getCurrentCoords().then((c) => c && setCoords(c));
     load();
   };
 
-  const featured = spots.filter((s) => s.featured);
+  // Compute real distance per spot (km), use as override for sorting
+  const here = coords || NATAL_CENTER;
+  const enriched = spots.map((s) => ({
+    ...s,
+    _live_distance: distanceKm(here, { latitude: s.latitude, longitude: s.longitude }) || s.distance_km,
+  }));
+
+  const featured = enriched.filter((s) => s.featured);
   const filtered = search
-    ? spots.filter(
+    ? enriched.filter(
         (s) =>
           s.name.toLowerCase().includes(search.toLowerCase()) ||
           s.neighborhood.toLowerCase().includes(search.toLowerCase()),
       )
-    : spots;
+    : enriched;
+
+  const labels = language === "en" ? QUICK_ACCESS_EN : language === "es" ? QUICK_ACCESS_ES : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -80,24 +105,61 @@ export default function Home() {
             <Ionicons name="menu" size={28} color={colors.text} />
           </TouchableOpacity>
           <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" />
-          <TouchableOpacity
-            style={styles.menuBtn}
-            onPress={() => router.push("/admin")}
-            accessibilityLabel="Painel admin"
-            testID="open-admin-button"
-          >
-            <Ionicons name="settings-outline" size={26} color={colors.text} />
-          </TouchableOpacity>
+          {user ? (
+            <TouchableOpacity
+              style={styles.avatarBtn}
+              onPress={() => router.push("/menu")}
+              accessibilityLabel="Abrir perfil"
+              testID="profile-button"
+            >
+              {user.picture ? (
+                <Image source={{ uri: user.picture }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarFallback}>
+                  <Text style={styles.avatarText}>{user.name?.[0]?.toUpperCase() || "U"}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.menuBtn}
+              onPress={() => router.push("/login")}
+              accessibilityLabel="Login"
+              testID="open-login-button"
+            >
+              <Ionicons name="person-circle-outline" size={28} color={colors.text} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Welcome */}
         <View style={styles.welcome}>
           <Text style={styles.welcomeTitle} testID="welcome-title">
-            Bem-vindo(a) a Natal!
+            {(() => {
+              const base = language === "en" ? config.welcome_en : language === "es" ? config.welcome_es : config.welcome_pt;
+              return user ? base.replace("!", `, ${user.name.split(" ")[0]}!`) : base;
+            })()}
           </Text>
           <Text style={styles.welcomeSubtitle}>
-            Explore a cidade com autonomia e inclusão.
+            {language === "en" ? config.welcome_sub_en : language === "es" ? config.welcome_sub_es : config.welcome_sub_pt}
           </Text>
+        </View>
+
+        {/* Language switcher */}
+        <View style={styles.langRow} testID="language-switcher">
+          {(["pt", "en", "es"] as const).map((l) => (
+            <TouchableOpacity
+              key={l}
+              onPress={() => setLanguage(l)}
+              style={[styles.langChip, language === l && styles.langChipActive]}
+              accessibilityLabel={`Idioma ${l}`}
+              testID={`lang-${l}`}
+            >
+              <Text style={[styles.langText, language === l && styles.langTextActive]}>
+                {l === "pt" ? "🇧🇷 PT" : l === "en" ? "🇺🇸 EN" : "🇪🇸 ES"}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Search */}
@@ -107,51 +169,57 @@ export default function Home() {
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder="Para onde você quer ir?"
+            placeholder={t(language, "search_placeholder")}
             placeholderTextColor={colors.textMuted}
             testID="search-input"
-            accessibilityLabel="Buscar pontos turísticos"
           />
-          <TouchableOpacity testID="voice-button" accessibilityLabel="Buscar por voz">
+          <TouchableOpacity testID="voice-button">
             <Ionicons name="mic" size={22} color={colors.brand} />
           </TouchableOpacity>
         </View>
 
         {/* Accessibility banner */}
-        <View style={styles.banner} testID="accessibility-banner">
+        <View style={styles.banner}>
           <View style={styles.bannerIcon}>
             <Ionicons name="volume-high" size={22} color={colors.brand} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.bannerTitle}>Modo acessível ativado</Text>
-            <Text style={styles.bannerText}>Navegação por voz e audiodescrição habilitadas.</Text>
+            <Text style={styles.bannerTitle}>{t(language, "accessibility_mode")}</Text>
+            <Text style={styles.bannerText}>{t(language, "accessibility_mode_sub")}</Text>
           </View>
         </View>
 
+        {/* Main shortcuts */}
+        <View style={styles.mainShortcuts}>
+          <Shortcut icon="map" label={t(language, "map")} color="#3B82F6" onPress={() => router.push("/map")} testID="goto-map" />
+          <Shortcut icon="storefront" label={t(language, "marketplace")} color={colors.brand} onPress={() => router.push("/marketplace")} testID="goto-marketplace" />
+          <Shortcut icon="warning" label={t(language, "emergency")} color={colors.error} onPress={() => router.push("/emergency")} testID="goto-emergency" />
+          <Shortcut icon="navigate" label={t(language, "near_me")} color={colors.success} onPress={() => router.push("/near")} testID="goto-near" />
+        </View>
+
         {/* Quick Access */}
-        <Text style={styles.sectionTitle}>Acessos rápidos</Text>
+        <Text style={styles.sectionTitle}>{t(language, "quick_access")}</Text>
         <View style={styles.quickGrid}>
-          {QUICK_ACCESS.map((q) => (
+          {QUICK_ACCESS.map((q, idx) => (
             <TouchableOpacity
               key={q.key}
               style={styles.quickCard}
-              onPress={() => router.push(q.route as any)}
-              accessibilityLabel={q.label}
+              onPress={() => router.push(`/near?category=${encodeURIComponent(q.key)}` as any)}
               testID={`quick-${q.key}`}
             >
               <View style={styles.quickIcon}>
                 <MaterialCommunityIcons name={q.icon as any} size={26} color={colors.brand} />
               </View>
-              <Text style={styles.quickLabel}>{q.label}</Text>
+              <Text style={styles.quickLabel}>{labels ? labels[idx] : q.labelKey}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Featured */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Destaques de Natal</Text>
+          <Text style={styles.sectionTitle}>{t(language, "featured")}</Text>
           <TouchableOpacity onPress={() => router.push("/near")} testID="see-all-button">
-            <Text style={styles.seeAll}>Ver todos</Text>
+            <Text style={styles.seeAll}>{t(language, "see_all")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -172,24 +240,38 @@ export default function Home() {
 
         {/* All */}
         <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>
-          {search ? `Resultados (${filtered.length})` : "Todos os pontos turísticos"}
+          {search ? `Resultados (${filtered.length})` : t(language, "all_spots")}
         </Text>
         {filtered.map((spot) => (
           <SpotListItem key={spot.id} spot={spot} />
         ))}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 16 }} />
+        <SealFooter />
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function FeaturedCard({ spot }: { spot: TouristSpot }) {
+function Shortcut({ icon, label, color, onPress, testID }: {
+  icon: keyof typeof Ionicons.glyphMap; label: string; color: string; onPress: () => void; testID: string;
+}) {
+  return (
+    <TouchableOpacity style={styles.shortcut} onPress={onPress} testID={testID} accessibilityLabel={label}>
+      <View style={[styles.shortcutIcon, { backgroundColor: color + "25" }]}>
+        <Ionicons name={icon} size={22} color={color} />
+      </View>
+      <Text style={styles.shortcutLabel} numberOfLines={1}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
   return (
     <TouchableOpacity
       style={styles.featuredCard}
       onPress={() => router.push(`/spot/${spot.id}`)}
-      accessibilityLabel={`Abrir ${spot.name}`}
       testID={`featured-${spot.id}`}
     >
       <Image source={{ uri: spot.image_url }} style={styles.featuredImage} />
@@ -201,9 +283,7 @@ function FeaturedCard({ spot }: { spot: TouristSpot }) {
             <Text style={styles.featuredBadgeText}>{spot.accessibility_badges[0]}</Text>
           </View>
         )}
-        <Text style={styles.featuredTitle} numberOfLines={2}>
-          {spot.name}
-        </Text>
+        <Text style={styles.featuredTitle} numberOfLines={2}>{spot.name}</Text>
         <View style={styles.row}>
           <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
           <Text style={styles.featuredLocation}>{spot.neighborhood}</Text>
@@ -213,24 +293,22 @@ function FeaturedCard({ spot }: { spot: TouristSpot }) {
   );
 }
 
-function SpotListItem({ spot }: { spot: TouristSpot }) {
+function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
+  const dist = spot._live_distance ?? spot.distance_km;
   return (
     <TouchableOpacity
       style={styles.listItem}
       onPress={() => router.push(`/spot/${spot.id}`)}
-      accessibilityLabel={`Abrir ${spot.name}`}
       testID={`list-${spot.id}`}
     >
       <Image source={{ uri: spot.image_url }} style={styles.listImage} />
       <View style={styles.listContent}>
-        <Text style={styles.listTitle} numberOfLines={1}>
-          {spot.name}
-        </Text>
+        <Text style={styles.listTitle} numberOfLines={1}>{spot.name}</Text>
         <Text style={styles.listCategory}>{spot.category}</Text>
         <View style={styles.row}>
           <Ionicons name="location-outline" size={12} color={colors.textMuted} />
           <Text style={styles.listMeta}>
-            {spot.neighborhood} • {spot.distance_km} km
+            {spot.neighborhood} • {dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`}
           </Text>
         </View>
         <View style={styles.badgeRow}>
@@ -249,79 +327,66 @@ function SpotListItem({ spot }: { spot: TouristSpot }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.sm,
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: spacing.sm },
+  menuBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  avatarBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  avatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.brand },
+  avatarFallback: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: colors.brand,
+    alignItems: "center", justifyContent: "center",
   },
-  menuBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  avatarText: { color: "#fff", fontWeight: "800" },
   logo: { width: 90, height: 56 },
-  welcome: { marginTop: spacing.md },
-  welcomeTitle: {
-    color: colors.text,
-    fontSize: fontSizes.h1,
-    fontWeight: "800",
-    letterSpacing: -0.5,
+  welcome: { marginTop: spacing.sm },
+  welcomeTitle: { color: colors.text, fontSize: fontSizes.h1, fontWeight: "800", letterSpacing: -0.5 },
+  welcomeSubtitle: { color: colors.textSecondary, fontSize: fontSizes.body, marginTop: 4, lineHeight: 22 },
+  langRow: { flexDirection: "row", gap: 6, marginTop: spacing.sm },
+  langChip: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.border,
   },
-  welcomeSubtitle: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.body,
-    marginTop: 4,
-    lineHeight: 22,
-  },
+  langChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  langText: { color: colors.textSecondary, fontSize: 12, fontWeight: "700" },
+  langTextActive: { color: "#fff" },
   searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row", alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
     marginTop: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 52,
+    borderWidth: 1, borderColor: colors.border, height: 52,
   },
   searchInput: { flex: 1, color: colors.text, fontSize: fontSizes.body },
   banner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.badgeBg,
-    borderRadius: radii.card,
-    padding: spacing.md,
-    marginTop: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.brand,
-    gap: spacing.md,
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: colors.badgeBg, borderRadius: radii.card,
+    padding: spacing.md, marginTop: spacing.md,
+    borderWidth: 1, borderColor: colors.brand, gap: spacing.md,
   },
   bannerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: colors.bg,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
   bannerTitle: { color: colors.text, fontWeight: "700", fontSize: fontSizes.body },
   bannerText: { color: colors.textSecondary, fontSize: fontSizes.small, marginTop: 2 },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: fontSizes.h3,
-    fontWeight: "700",
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
+  mainShortcuts: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
+  shortcut: {
+    flex: 1, alignItems: "center", gap: 6,
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.md,
+    borderRadius: radii.card,
+    borderWidth: 1, borderColor: colors.border,
   },
+  shortcutIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  shortcutLabel: { color: colors.text, fontSize: 11, fontWeight: "700" },
+  sectionTitle: { color: colors.text, fontSize: fontSizes.h3, fontWeight: "700", marginTop: spacing.lg, marginBottom: spacing.sm },
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: spacing.lg, marginBottom: spacing.sm,
   },
   seeAll: { color: colors.brandLight, fontSize: fontSizes.small, fontWeight: "600" },
   quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
@@ -331,61 +396,43 @@ const styles = StyleSheet.create({
     borderRadius: radii.card,
     padding: spacing.md,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 96,
-    justifyContent: "center",
-    gap: spacing.sm,
+    borderWidth: 1, borderColor: colors.border,
+    minHeight: 96, justifyContent: "center", gap: spacing.sm,
   },
   quickIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 44, height: 44, borderRadius: 22,
     backgroundColor: colors.badgeBg,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
   quickLabel: { color: colors.text, fontSize: fontSizes.small, fontWeight: "600", textAlign: "center" },
   featuredCard: {
-    width: 240,
-    height: 280,
+    width: 240, height: 280,
     borderRadius: radii.card,
     backgroundColor: colors.surface,
     overflow: "hidden",
     marginLeft: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1, borderColor: colors.border,
   },
   featuredImage: { width: "100%", height: "100%", position: "absolute" },
-  featuredOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(11, 17, 32, 0.55)",
-  },
+  featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(11, 17, 32, 0.55)" },
   featuredContent: { flex: 1, justifyContent: "flex-end", padding: spacing.md, gap: 6 },
   featuredBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
+    flexDirection: "row", alignItems: "center", alignSelf: "flex-start",
     backgroundColor: colors.successBg,
     borderRadius: radii.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    gap: 4,
+    paddingHorizontal: 10, paddingVertical: 4, gap: 4,
   },
   featuredBadgeText: { color: colors.success, fontSize: 11, fontWeight: "700" },
   featuredTitle: { color: "#fff", fontSize: 18, fontWeight: "800", lineHeight: 22 },
   row: { flexDirection: "row", alignItems: "center", gap: 4 },
   featuredLocation: { color: colors.textSecondary, fontSize: fontSizes.small },
   listItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "row", alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: radii.card,
     padding: spacing.sm,
     marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.md,
+    borderWidth: 1, borderColor: colors.border, gap: spacing.md,
   },
   listImage: { width: 72, height: 72, borderRadius: 12 },
   listContent: { flex: 1, gap: 2 },
@@ -393,11 +440,6 @@ const styles = StyleSheet.create({
   listCategory: { color: colors.brandLight, fontSize: 12, fontWeight: "600" },
   listMeta: { color: colors.textMuted, fontSize: 12 },
   badgeRow: { flexDirection: "row", gap: 4, marginTop: 4, flexWrap: "wrap" },
-  miniBadge: {
-    backgroundColor: colors.successBg,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radii.pill,
-  },
+  miniBadge: { backgroundColor: colors.successBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.pill },
   miniBadgeText: { color: colors.success, fontSize: 10, fontWeight: "700" },
 });

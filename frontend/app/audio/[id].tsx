@@ -17,16 +17,21 @@ import * as Haptics from "expo-haptics";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { useAuth } from "@/src/auth-context";
+import { ttsLocale } from "@/src/i18n";
 
 export default function AudioExperience() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { language } = useAuth();
   const [spot, setSpot] = useState<TouristSpot | null>(null);
+  const [audioText, setAudioText] = useState<string>("");
+  const [spotName, setSpotName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [progress, setProgress] = useState(0); // 0..1
-  const [elapsed, setElapsed] = useState(0); // seconds
-  const [estimated, setEstimated] = useState(0); // seconds
+  const [progress, setProgress] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [estimated, setEstimated] = useState(0);
   const [rate, setRate] = useState(1.0);
   const [showText, setShowText] = useState(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,7 +42,8 @@ export default function AudioExperience() {
       try {
         const data = await api.getSpot(id);
         setSpot(data);
-        // Rough estimate: 14 chars per second at normal rate
+        setSpotName(data.name);
+        setAudioText(data.audio_description);
         const seconds = Math.max(15, Math.round(data.audio_description.length / 14));
         setEstimated(seconds);
       } finally {
@@ -49,6 +55,32 @@ export default function AudioExperience() {
       if (tickRef.current) clearInterval(tickRef.current);
     };
   }, [id]);
+
+  // Re-translate when language changes
+  useEffect(() => {
+    if (!id || !spot) return;
+    Speech.stop();
+    setPlaying(false);
+    setPaused(false);
+    setProgress(0);
+    setElapsed(0);
+    if (language === "pt") {
+      setAudioText(spot.audio_description);
+      setSpotName(spot.name);
+      return;
+    }
+    (async () => {
+      try {
+        const r = await api.translate(spot.id, language);
+        setAudioText(r.audio_description);
+        setSpotName(r.name);
+        const seconds = Math.max(15, Math.round(r.audio_description.length / 14));
+        setEstimated(seconds);
+      } catch (e) {
+        console.warn("translate failed", e);
+      }
+    })();
+  }, [language, id, spot]);
 
   const startTick = (durationSec: number) => {
     if (tickRef.current) clearInterval(tickRef.current);
@@ -192,7 +224,7 @@ export default function AudioExperience() {
         {/* Title */}
         <View style={styles.titleWrap}>
           <Text style={styles.title} numberOfLines={2}>
-            {spot.name}
+            {spotName || spot.name}
           </Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
@@ -200,6 +232,12 @@ export default function AudioExperience() {
               {spot.neighborhood}, Natal – RN
             </Text>
           </View>
+          {language !== "pt" && (
+            <View style={styles.langPill}>
+              <Ionicons name="language" size={12} color={colors.brand} />
+              <Text style={styles.langPillText}>{language === "en" ? "English" : "Español"}</Text>
+            </View>
+          )}
         </View>
 
         {/* Progress bar */}
@@ -278,7 +316,7 @@ export default function AudioExperience() {
             <Ionicons name="document-text" size={18} color={colors.brand} />
             <Text style={styles.transcriptTitle}>Audiodescrição</Text>
           </View>
-          <Text style={styles.transcriptText}>{spot.audio_description}</Text>
+          <Text style={styles.transcriptText}>{audioText || spot.audio_description}</Text>
         </View>
 
         {/* Footer info */}
@@ -332,6 +370,17 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 24, fontWeight: "800", textAlign: "center" },
   locationRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 },
   location: { color: colors.textSecondary, fontSize: fontSizes.small },
+  langPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.badgeBg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radii.pill,
+    gap: 4,
+    marginTop: 8,
+  },
+  langPillText: { color: colors.brand, fontSize: 11, fontWeight: "700" },
   progressWrap: { paddingHorizontal: spacing.lg, marginTop: spacing.lg },
   progressBar: {
     height: 6,

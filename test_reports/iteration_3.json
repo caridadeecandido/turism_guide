@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 3 — both backend & frontend tested. All 28 pytest tests pass (admin JWT, spots write protection, site-config public/admin, translations cache, partners, seal, inquiries). Frontend mobile UI verified end-to-end: language switcher (PT/EN/ES), Accessibility FAB + panel (all 4 toggles, persistence), admin gate redirect, admin login + dashboard with 14 spots + quick actions + logout, /admin/site form, marketplace (6 partners), partner detail + inquiry submit + success card, seal verify (valid & invalid). Backend logs confirm inquiry persistence. No critical issues. Minor inconsistency: /menu uses different testIDs (toggle-audio, toggle-haptics) than the floating panel (toggle-audio-focus, toggle-haptic) — same underlying state, so functionally synced, but testID naming is inconsistent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "global", "issues": ["Console warning: 'shadow*' style props deprecated by react-native-web — should migrate to 'boxShadow'. Non-blocking but appears on every screen with FAB/panel/cards."]}
+    ],
+    "react_native_issues": [
+      {"component": "menu.tsx toggle-haptics vs AccessibilityPanel toggle-haptic", "issue": "Inconsistent testID naming between /menu and floating Accessibility Panel. menu.tsx uses 'toggle-audio' / 'toggle-haptics'; AccessibilityPanel uses 'toggle-audio-focus' / 'toggle-haptic'. Underlying state is the same so they ARE synced functionally, but tests targeting one screen won't match the other. Reference: /app/frontend/app/menu.tsx:111,127 vs /app/frontend/src/components/AccessibilityPanel.tsx:61,77"}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration2.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Align menu.tsx testIDs to match AccessibilityPanel (toggle-audio-focus, toggle-haptic) so a single test ID set works on both surfaces.",
+    "(Optional) Replace deprecated shadow* style props with boxShadow on web to remove console warnings.",
+    "No retest required — all critical flows green."
+  ],
+  "critical_code_review_comments": [
+    "Backend: admin endpoints correctly require Bearer JWT; password_hash never returned in /api/admin/me payload (verified by test_admin_me_with_valid_token).",
+    "Frontend: /admin route correctly gated — unauthenticated navigation redirects to /admin/login as expected.",
+    "Frontend: window.confirm is used for delete on web (correctly, since Alert.alert doesn't work on web)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "One TEST_ inquiry created via UI flow (TEST_UI_User → Pousada Inclusiva Ponta Negra). Backend tests also created/cleaned TEST_ spots via admin token. Persisted inquiry id logged in backend (61cf61bf-...). Safe to leave or sweep with TEST_ prefix.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend admin JWT flow is stable. Use EXPO_PUBLIC_BACKEND_URL env var (https://tourism-audio-guide.preview.emergentagent.com) when running pytest. Admin creds in /app/memory/test_credentials.md (admin@turismoquesesente.com.br / Natal@2026!). For frontend, /partner/{id} inquiry form is hidden behind 'Reservar' CTA — click testID='reserve-button' first, then fill testIDs field-name/field-email/field-message and click submit-inquiry-button. Seal codes are 10-char hex strings; first partner seal code can be fetched via GET /api/partners.",
+  "rca_of_issue": "No bugs reproduced. The only finding is the cosmetic testID inconsistency between /menu and the floating Accessibility Panel — they share the same a11y store keys so toggling one IS reflected in the other on next open (verified via reload test on home → panel still showed audio-focus ON after reload)."
+}

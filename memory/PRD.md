@@ -1,39 +1,72 @@
-# Turismo que se Sente — PRD
+# Turismo que se Sente — PRD (v3)
 
 ## Visão geral
-Aplicativo móvel **acessível** (Expo / React Native) que apresenta os principais pontos turísticos de **Natal/RN** com **audiodescrição em português**, informações de acessibilidade, imagens reais e painel administrativo para edição fácil. Inspirado no projeto SENAC Barreira Roxa.
+Aplicativo móvel **acessível e profissional** (Expo / React Native + FastAPI + MongoDB) que apresenta os principais pontos turísticos de **Natal/RN** com **audiodescrição em português**, multi-idioma (PT/EN/ES via LLM), marketplace de parceiros certificados, mapa real (OpenStreetMap), botão de emergência, painel administrativo blindado (JWT) e painel flutuante global de acessibilidade.
 
 ## Stack
-- **Frontend**: Expo SDK 54 + Expo Router (file-based), React Native 0.81, expo-speech (TTS pt-BR), @expo/vector-icons.
-- **Backend**: FastAPI + Motor (MongoDB async). 14 pontos turísticos pré-cadastrados (seed automático).
-- **Identidade visual**: paleta roxo/violeta `#7C3AED` (extraída da logo do projeto) + fundo navy escuro `#0B1120` para alto contraste WCAG AAA.
+- **Frontend**: Expo SDK 54 + Expo Router (file-based), React Native 0.81, expo-speech (TTS pt-BR/en-US/es-ES), expo-haptics, expo-secure-store, @expo/vector-icons.
+- **Backend**: FastAPI + Motor (MongoDB async), bcrypt + PyJWT (admin), Emergent LLM Key (`gpt-4o-mini` para traduções).
+- **Identidade visual**: paleta roxo/violeta `#7C3AED` + fundo navy escuro `#0B1120` (WCAG AAA).
 
-## Features Entregues
-- **Home**: boas-vindas, busca, 6 acessos rápidos por categoria, banner de acessibilidade, destaques horizontais, lista completa
-- **Detalhe do Atrativo** (`/spot/[id]`): hero image, badges de acessibilidade, descrição completa, CTA "Ouvir audiodescrição", endereço, lista de recursos
-- **Experiência de Áudio** (`/audio/[id]`): player com play/pause/parar/avançar/retroceder, controle de velocidade (0.75x–1.5x), barra de progresso, transcrição visível, narração via TTS pt-BR nativo do dispositivo (`expo-speech`)
-- **Perto de Mim** (`/near`): lista com chips de filtro por categoria, ordenação por distância
-- **Menu/Configurações** (`/menu`): toggles de audiodescrição/contraste/vibração, idioma, ajuda, feedback por e-mail, botão **Emergência** (liga para 190)
-- **Painel Admin** (`/admin`): CRUD completo dos pontos turísticos (Criar, Editar, Excluir) — qualquer pessoa pode editar nome, categoria, endereço, imagem, descrição, audiodescrição, badges e recursos de acessibilidade
+## Autenticação (dual)
+- **Turista** — Emergent Google Auth (favoritos, idioma, reservas)
+- **Administrador** — JWT custom protegido, login em `/admin/login` (`AdminAuthProvider` separado do `AuthProvider`)
 
-## Pontos Turísticos Pré-Cadastrados (14)
-Morro do Careca, Forte dos Reis Magos, Praia de Ponta Negra, Parque das Dunas, Dunas de Genipabu, Praia da Pipa, Maracajaú, Centro Histórico — Cidade Alta, Praia do Meio, Praia dos Artistas, Mirante de Mãe Luiza, Catedral Nova de Natal, Café do Forte, Hotel Parque da Costeira.
+### Admin default
+- email: `admin@turismoquesesente.com.br`
+- senha: `Natal@2026!`
 
-## API (todas com prefixo `/api`)
-- `GET /spots` (com query `category`, `featured`)
-- `GET /spots/{id}`
-- `POST /spots`, `PUT /spots/{id}`, `DELETE /spots/{id}`
-- `GET /categories`
-- `POST /seed` (idempotente — reseta para os 14 padrões)
+## Painel administrativo (CMS) — `/admin/*`
+Rotas blindadas por `AdminGate` (redireciona para `/admin/login` se sem token):
+- `/admin` — lista + CRUD de pontos turísticos
+- `/admin/site` — Site & Selo (texto, footer, boas-vindas PT/EN/ES, imagem do selo)
+- `/admin/translations` — traduções manuais EN/ES (com auto-tradução por IA)
+- `/admin/inquiries` — solicitações dos clientes (parceiros)
 
-## Como editar facilmente
-1. Abrir o app → tap no ícone de engrenagem (canto superior direito da home) **ou** Menu → Painel administrativo.
-2. Botão **+** para criar; ícone de lápis para editar; ícone de lixeira para excluir.
-3. Campos editáveis: nome, categoria, bairro, endereço, URL da imagem, distância, descrição curta, descrição completa, **audiodescrição (texto narrado)**, selos, recursos, destaque na home.
-4. Para alterar a paleta de cores ou tipografia globalmente: edite `/app/frontend/src/theme.ts`.
+## Acessibilidade (Floating Panel)
+Componente global `AccessibilityPanel` (top-right) sempre presente:
+- **Audio-descrição interativa** (TTS sob foco)
+- **Retorno auditivo (beeps)** — Web Audio API / Speech
+- **Feedback tátil (vibração)** — Haptics nativos / `navigator.vibrate`
+- **Locomoção reduzida** (botões grandes)
+Preferências persistidas em SecureStore (mobile) / localStorage (web). Sincronizado com `/menu`.
+
+## Selo Digital
+- Imagem dinâmica vinda de `site_config.seal_image_url` (editável no admin)
+- Exibido como `SealFooter` em Home, Menu e /seal
+- Página `/seal` verifica códigos de selo dos parceiros via `GET /seal/verify/{code}`
+
+## Telas (Tourist)
+- `/` Home — boas-vindas dinâmicas (config), busca, acessos rápidos, destaques, lista + seletor idioma
+- `/spot/[id]` Detalhe com hero, badges, audio CTA
+- `/audio/[id]` Player TTS
+- `/near` GPS + filtros
+- `/map` OpenStreetMap WebView
+- `/marketplace` Parceiros + filtros
+- `/partner/[id]` Detalhe + inquiry form
+- `/seal` Verificação de selo
+- `/emergency` 190/192/193
+- `/menu` Configurações + a11y toggles + Selo + Idioma + Admin
+- `/login` Google Auth
+
+## Backend — API (`/api/*`)
+- **Públicos**: `/spots`, `/categories`, `/partners`, `/seal/verify/{code}`, `/site-config`, `/spots/{id}/translate?lang=`
+- **Tourist auth**: `/auth/session`, `/auth/me`, `/auth/logout`, `/me/*`
+- **Admin (JWT)**: `/admin/login`, `/admin/me`, `/admin/site-config`, `/admin/inquiries`, `/admin/upload-image`, `/admin/change-password` + todos `POST/PUT/DELETE` em `/spots` e `/seed`
+
+## Tradução
+- Manual (override) salvo em `spot.translations[lang]`
+- Cache LLM em `db.translations` por `spot_id:lang`
+- Fallback live: `emergentintegrations` + `gpt-4o-mini`
+
+## Como editar / personalizar
+1. Logar em `/admin/login`
+2. **Site & Selo** — trocar imagem, textos, footer, boas-vindas (PT/EN/ES)
+3. **Pontos turísticos** — CRUD completo + `image_alt` (acessibilidade) + lat/lng GPS
+4. **Traduções** — auto-traduzir por IA ou revisar manualmente
+5. **Solicitações** — receber reservas dos parceiros
 
 ## Observações
-- **TTS**: usa `expo-speech` (offline, pt-BR nativo) — funciona perfeitamente em Expo Go / build nativo. No preview web pode não ter voz pt-BR instalada.
-- **Imagens**: URLs do Pexels/Unsplash — o admin permite trocar por qualquer URL.
-- **Logo oficial** carregada da URL pública do projeto (constante `LOGO_URL` em `theme.ts`).
-- **Sem autenticação** — o painel admin está aberto (atende ao requisito "fácil de editar").
+- TTS: usa `expo-speech` (nativo). No web depende de vozes do navegador.
+- Imagens: URLs públicas (Pexels/Unsplash) + suporte a base64 via `/admin/upload-image`.
+- Seed automático na 1ª inicialização (14 pontos + 6 parceiros + 1 admin + site config).
