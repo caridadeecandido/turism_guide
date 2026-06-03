@@ -108,7 +108,7 @@ export default function Menu() {
               label="Audiodescrição automática"
               value={prefs.audioOnFocus}
               onChange={(v) => set("audioOnFocus", v)}
-              testID="toggle-audio"
+              testID="toggle-audio-focus"
             />
             <View style={styles.divider} />
             <ToggleRow
@@ -124,7 +124,7 @@ export default function Menu() {
               label="Vibração tátil"
               value={prefs.haptic}
               onChange={(v) => set("haptic", v)}
-              testID="toggle-haptics"
+              testID="toggle-haptic"
             />
             <View style={styles.divider} />
             <ToggleRow
