@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 5 fully verified — NEW Partner admin CRUD + NEW About page + expanded SiteConfig. Backend: 57/57 pytest pass (7 new in test_iteration5.py + 50 regression in test_iteration2/iteration4). Partner CRUD now complete: POST/PUT/DELETE all return 200 with proper auth; unauth POST → 401, DELETE unknown → 404, after-delete GET → 404, seal_code is 10 hex chars uppercase, regression GET /api/partners still returns 6 seeded items. Expanded /api/site-config exposes all 16 new fields (app_icon_url, hero_image_url, mission_pt/en/es, vision_pt/en/es, contact_address, facebook, youtube, tiktok, website, promoter_logos[], promoter_names[] containing 'SENAC RN', show_about_tab=True) with non-empty PT defaults; PUT /api/admin/site-config persists every new field and public GET reflects the change. Frontend: /about renders header 'Sobre o projeto', hero banner with seal + app_name + subtitle, 'O que é o Turismo que se Sente' section, Mission/Vision cards (purple/amber), 5 accessibility pillars (Audiodescrição, Libras, Cães-guia, Mobilidade, Neurodiversidade), Fale com a gente rows (contact-email/phone/whatsapp/address all visible), 'Siga nas redes sociais' with social-instagram/facebook/youtube/tiktok/website testIDs, Realização section with SENAC RN logo. Language switch on home → /about correctly shows EN ('Mission', 'Vision', 'What is') and persists. Home shows 6 shortcuts including goto-about that wraps to row 2 (goto-emergency in row 2 stretches full-width due to flexGrow:1 — minor visual glitch). Menu's link-about-project navigates to /about correctly. Admin /admin shows 6 quick actions (goto-site, goto-admin-guides, goto-admin-partners, goto-translations, goto-inquiries, seed-button). /admin/partners lists 6 seeded partners with edit/excluir; new-partner-button (+) opens form with all sections (Identidade rendered, Acessibilidade visible — note 'Imagem'/'Contato'/'Geolocalização' headings rendered as part of section structure but matched as 'Acessibilidade' explicitly; field testIDs p-name/p-category/p-img/save-partner-button/cancel-edit-button all present and functional). Create→list→delete round-trip works: created TEST_UI_Partner, appeared as row, deleted via delete-partner-{id} (confirm dialog auto-accepted) — DB verified clean (re-seeded). /admin/site has all new sections: Identidade do app (with app_logo/app_icon/hero_image fields), Missão (PT/EN/ES), Visão (PT/EN/ES), Redes sociais (instagram/facebook/youtube/tiktok/website), Realização (promoter_names + promoter_logos), Visibilidade de seções (toggles testIDs: toggle-show-guides/toggle-show-marketplace/toggle-show-about — review request mentioned field-show-* but actual code uses toggle-show-*). Modified field-mission-pt → Salvar → reloaded → value persisted → /about renders new mission text. Mission restored to default after test.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "index.tsx mainShortcuts row", "issue": "goto-emergency wraps to row 2 alone and stretches full-width (flexGrow:1 + flexWrap:wrap with single item). Looks odd vs the 5 buttons row above. Consider setting maxWidth on shortcut or using a 3x2 grid for 6 items. Reference: /app/frontend/app/index.tsx:378-387.", "testID": "goto-emergency", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "global", "issues": ["Recurring 'shadow*' deprecation warning and 'Unexpected text node' warnings in expo.err.log — pre-existing, do not block rendering (per review note)."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration5.py",
+    "/app/test_reports/pytest/pytest_iter5.xml"
+  ],
+  "action_items": [
+    "(Optional cosmetic) Make goto-emergency row look nicer when it wraps alone — set fixed width or use 3x2 grid in styles.mainShortcuts (/app/frontend/app/index.tsx:378-387).",
+    "(Optional) Align review-request test-IDs vs code: visibility toggles are toggle-show-guides/toggle-show-marketplace/toggle-show-about (not field-show-*); partner form section headings used in code may differ from spec wording but all required fields/testIDs are present and functional."
+  ],
+  "critical_code_review_comments": [
+    "server.py partner CRUD is clean: POST/PUT/DELETE under require_admin, _id excluded, seal_code auto-generated 10-char hex uppercase. PUT returns 404 on unknown, DELETE returns 404 on unknown — matches expectations.",
+    "DEFAULT_SITE_CONFIG (server.py:396-443) includes every new field with sensible PT defaults; mission/vision strings are populated; promoter_names defaults to ['SENAC RN']; show_about_tab defaults True.",
+    "Startup migration logs 'Migrated site_config' on existing DB to backfill new fields — verified live (backend logs show all 16 new keys migrated).",
+    "Frontend /about page (about.tsx) cleanly uses View/Text/TouchableOpacity, all interactive rows have testIDs, social cards branded with correct colors (Instagram pink, Facebook blue, YouTube red, TikTok black, Website purple)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration5.py (NEW — 7 tests)"
+  ],
+  "success_rate": {"backend": "100% (57/57)", "frontend": "100% (all flows: home shortcuts, /about full render incl. EN switching, menu link-about-project, /admin 6 quick actions, /admin/partners CRUD round-trip, /admin/site new sections + mission_pt persistence)"},
+  "seed_data_creation": "Created TEST_UI_Partner via UI then deleted it; re-seeded database via /api/seed to restore canonical 14 spots / 6 partners / 4 guides. site_config mission_pt was temporarily set to 'MISSION_TEST_UI_iter5' then restored to the default Portuguese string. No leftover test data.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All iteration 5 features green. Run `EXPO_PUBLIC_BACKEND_URL=$(grep EXPO_PUBLIC_BACKEND_URL /app/frontend/.env | cut -d= -f2) pytest /app/backend/tests/ -v` for the full 57-test regression. Mobile viewport 390x844. Admin login uses testIDs admin-email-input/admin-password-input/admin-login-button. Note: the visibility toggles in /admin/site are toggle-show-guides/toggle-show-marketplace/toggle-show-about (not field-show-*). For partner UI test, use page.evaluate('() => element.click()') if Playwright force-click is blocked by the floating Accessibility FAB overlay (top-right) that sometimes covers small icon buttons in the header.",
+  "rca_of_issue": "N/A — no functional bugs found. The only finding is a minor cosmetic layout: on a 390-wide viewport, the 6 main shortcuts (~65px each + gaps) wrap so that goto-emergency sits alone on row 2 and stretches to full-width because styles.shortcut has flexGrow:1. Fix: replace flexGrow:1 with a fixed width OR use a 3-column grid with width:'31.5%' similar to quickGrid."
+}

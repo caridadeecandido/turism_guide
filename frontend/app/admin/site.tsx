@@ -40,7 +40,9 @@ export default function SiteCMS() {
     }
   };
 
-  const update = (k: keyof typeof form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
+  const update = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const updateArr = (k: keyof typeof form, csv: string) =>
+    setForm((f) => ({ ...f, [k]: csv.split(",").map((s) => s.trim()).filter(Boolean) }));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -79,7 +81,23 @@ export default function SiteCMS() {
 
           <Section title="Identidade do app">
             <Field label="Nome do app" value={form.app_name || ""} onChange={(v) => update("app_name", v)} testID="field-app-name" />
-            <Field label="URL do logo (opcional)" value={form.app_logo_url || ""} onChange={(v) => update("app_logo_url", v)} testID="field-app-logo" multiline />
+            <Field label="URL do logo (header / footer)" value={form.app_logo_url || ""} onChange={(v) => update("app_logo_url", v)} testID="field-app-logo" multiline />
+            <Field label="URL do ícone do app (quadrado)" value={form.app_icon_url || ""} onChange={(v) => update("app_icon_url", v)} testID="field-app-icon" multiline />
+            <Field label="URL do banner hero (página Sobre)" value={form.hero_image_url || ""} onChange={(v) => update("hero_image_url", v)} testID="field-hero-image" multiline hint="Banner que aparece no topo da página /about" />
+            {form.app_logo_url ? (
+              <View style={styles.previewRow}>
+                <View style={styles.previewBox}>
+                  <Image source={{ uri: form.app_logo_url }} style={styles.previewImg} resizeMode="contain" />
+                  <Text style={styles.previewLabel}>Logo</Text>
+                </View>
+                {form.hero_image_url ? (
+                  <View style={styles.previewBox}>
+                    <Image source={{ uri: form.hero_image_url }} style={styles.previewImg} resizeMode="cover" />
+                    <Text style={styles.previewLabel}>Hero</Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
           </Section>
 
           <Section title="Cabeçalho (header)">
@@ -128,11 +146,49 @@ export default function SiteCMS() {
             <Field label="Acerca (ES)" value={form.about_es || ""} onChange={(v) => update("about_es", v)} testID="field-about-es" multiline />
           </Section>
 
+          <Section title="Missão (3 idiomas)">
+            <Field label="Missão (PT)" value={form.mission_pt || ""} onChange={(v) => update("mission_pt", v)} testID="field-mission-pt" multiline />
+            <Field label="Mission (EN)" value={form.mission_en || ""} onChange={(v) => update("mission_en", v)} testID="field-mission-en" multiline />
+            <Field label="Misión (ES)" value={form.mission_es || ""} onChange={(v) => update("mission_es", v)} testID="field-mission-es" multiline />
+          </Section>
+
+          <Section title="Visão (3 idiomas)">
+            <Field label="Visão (PT)" value={form.vision_pt || ""} onChange={(v) => update("vision_pt", v)} testID="field-vision-pt" multiline />
+            <Field label="Vision (EN)" value={form.vision_en || ""} onChange={(v) => update("vision_en", v)} testID="field-vision-en" multiline />
+            <Field label="Visión (ES)" value={form.vision_es || ""} onChange={(v) => update("vision_es", v)} testID="field-vision-es" multiline />
+          </Section>
+
           <Section title="Contato oficial">
             <Field label="E-mail" value={form.contact_email || ""} onChange={(v) => update("contact_email", v)} testID="field-contact-email" />
             <Field label="Telefone" value={form.contact_phone || ""} onChange={(v) => update("contact_phone", v)} testID="field-contact-phone" />
             <Field label="WhatsApp" value={form.contact_whatsapp || ""} onChange={(v) => update("contact_whatsapp", v)} testID="field-contact-whatsapp" />
-            <Field label="Instagram" value={form.instagram || ""} onChange={(v) => update("instagram", v)} testID="field-instagram" hint="Ex: @turismoquesesente" />
+            <Field label="Endereço físico" value={form.contact_address || ""} onChange={(v) => update("contact_address", v)} testID="field-contact-address" multiline />
+          </Section>
+
+          <Section title="Redes sociais">
+            <Field label="Instagram (com ou sem @)" value={form.instagram || ""} onChange={(v) => update("instagram", v)} testID="field-instagram" />
+            <Field label="Facebook" value={form.facebook || ""} onChange={(v) => update("facebook", v)} testID="field-facebook" />
+            <Field label="YouTube (handle ou @)" value={form.youtube || ""} onChange={(v) => update("youtube", v)} testID="field-youtube" />
+            <Field label="TikTok" value={form.tiktok || ""} onChange={(v) => update("tiktok", v)} testID="field-tiktok" />
+            <Field label="Website" value={form.website || ""} onChange={(v) => update("website", v)} testID="field-website" hint="Ex: https://www.turismoquesesente.com.br" />
+          </Section>
+
+          <Section title="Realização (parceiros institucionais)">
+            <Field
+              label="Nomes dos realizadores (separados por vírgula)"
+              value={(form.promoter_names || []).join(", ")}
+              onChange={(v) => updateArr("promoter_names", v)}
+              testID="field-promoter-names"
+              hint="Ex: SENAC RN, SEBRAE RN"
+            />
+            <Field
+              label="URLs dos logos (vírgula, na mesma ordem)"
+              value={(form.promoter_logos || []).join(", ")}
+              onChange={(v) => updateArr("promoter_logos", v)}
+              testID="field-promoter-logos"
+              multiline
+              hint="Cole as URLs dos logos. A ordem deve corresponder aos nomes acima."
+            />
           </Section>
 
           <Section title="Emergência (botão SOS)">
@@ -154,6 +210,12 @@ export default function SiteCMS() {
               value={form.show_marketplace_tab !== false}
               onChange={(v) => update("show_marketplace_tab", v)}
               testID="toggle-show-marketplace"
+            />
+            <ToggleRow
+              label="Exibir aba Sobre o projeto"
+              value={form.show_about_tab !== false}
+              onChange={(v) => update("show_about_tab", v)}
+              testID="toggle-show-about"
             />
           </Section>
 
@@ -251,4 +313,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   toggleLabel: { color: colors.text, fontSize: fontSizes.body, flex: 1 },
+  previewRow: {
+    flexDirection: "row", gap: 8, marginTop: 8,
+  },
+  previewBox: {
+    flex: 1, backgroundColor: colors.bg,
+    borderRadius: radii.input, padding: 8,
+    borderWidth: 1, borderColor: colors.border,
+    alignItems: "center",
+  },
+  previewImg: { width: "100%", height: 70, borderRadius: 4 },
+  previewLabel: { color: colors.textMuted, fontSize: 10, marginTop: 4, fontWeight: "700" },
 });

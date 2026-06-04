@@ -142,6 +142,8 @@ export default function Menu() {
           <View style={styles.card}>
             <LinkRow icon="map" label="Mapa de Natal" onPress={() => router.push("/map")} testID="link-map" />
             <View style={styles.divider} />
+            <LinkRow icon="people" label="Guias certificados" onPress={() => router.push("/guides")} testID="link-guides" />
+            <View style={styles.divider} />
             <LinkRow icon="storefront" label="Parceiros acessíveis" onPress={() => router.push("/marketplace")} testID="link-marketplace" />
             <View style={styles.divider} />
             <LinkRow icon="ribbon" label="Selo Digital" onPress={() => router.push("/seal")} testID="link-seal" />
@@ -154,13 +156,18 @@ export default function Menu() {
         <Section title="Sobre">
           <View style={styles.card}>
             <LinkRow
+              icon="information-circle"
+              label="Sobre o projeto"
+              onPress={() => router.push("/about")}
+              testID="link-about-project"
+            />
+            <View style={styles.divider} />
+            <LinkRow
               icon="chatbubble-outline"
               label="Enviar feedback"
               onPress={() => Linking.openURL("mailto:feedback@turismoquesesente.com.br?subject=Feedback%20App")}
               testID="link-feedback"
             />
-            <View style={styles.divider} />
-            <LinkRow icon="information-circle-outline" label="Sobre o aplicativo" onPress={() => {}} testID="link-about" />
             <View style={styles.divider} />
             <LinkRow icon="cog-outline" label="Painel administrativo" onPress={() => router.push("/admin")} testID="link-admin" />
           </View>

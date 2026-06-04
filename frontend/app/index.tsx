@@ -195,6 +195,7 @@ export default function Home() {
           <Shortcut icon="people" label={language === "en" ? "Guides" : language === "es" ? "Guías" : "Guias"} color="#F59E0B" onPress={() => router.push("/guides")} testID="goto-guides" />
           <Shortcut icon="storefront" label={t(language, "marketplace")} color={colors.brand} onPress={() => router.push("/marketplace")} testID="goto-marketplace" />
           <Shortcut icon="navigate" label={t(language, "near_me")} color={colors.success} onPress={() => router.push("/near")} testID="goto-near" />
+          <Shortcut icon="information-circle" label={language === "en" ? "About" : language === "es" ? "Acerca" : "Sobre"} color="#10B981" onPress={() => router.push("/about")} testID="goto-about" />
           <Shortcut icon="warning" label={t(language, "emergency")} color={colors.error} onPress={() => router.push("/emergency")} testID="goto-emergency" />
         </View>
 

@@ -4,38 +4,65 @@ const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export type SiteConfig = {
   id?: string;
+  // Branding
   app_name: string;
   app_logo_url: string;
+  app_icon_url: string;
+  hero_image_url: string;
   seal_image_url: string;
   seal_alt: string;
+  // Banners
   header_banner_title: string;
   header_banner_subtitle: string;
   footer_text: string;
+  // Welcome
   welcome_pt: string;
   welcome_en: string;
   welcome_es: string;
   welcome_sub_pt: string;
   welcome_sub_en: string;
   welcome_sub_es: string;
+  // About
   about_pt: string;
   about_en: string;
   about_es: string;
+  mission_pt: string;
+  mission_en: string;
+  mission_es: string;
+  vision_pt: string;
+  vision_en: string;
+  vision_es: string;
+  // Contact
   contact_email: string;
   contact_phone: string;
   contact_whatsapp: string;
+  contact_address: string;
   instagram: string;
+  facebook: string;
+  youtube: string;
+  tiktok: string;
+  website: string;
+  // Promoters
+  promoter_logos: string[];
+  promoter_names: string[];
+  // Emergency
   emergency_police: string;
   emergency_ambulance: string;
   emergency_fire: string;
   emergency_tourist: string;
+  // Visibility
   show_guides_tab: boolean;
   show_marketplace_tab: boolean;
+  show_about_tab: boolean;
 };
 
 const DEFAULTS: SiteConfig = {
   app_name: "Turismo que se Sente",
   app_logo_url:
     "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+  app_icon_url:
+    "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+  hero_image_url: "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=80",
   seal_image_url:
     "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG",
   seal_alt: "Selo oficial Turismo que se Sente — Categoria Ouro",
@@ -51,16 +78,30 @@ const DEFAULTS: SiteConfig = {
   about_pt: "",
   about_en: "",
   about_es: "",
+  mission_pt: "",
+  mission_en: "",
+  mission_es: "",
+  vision_pt: "",
+  vision_en: "",
+  vision_es: "",
   contact_email: "",
   contact_phone: "",
   contact_whatsapp: "",
+  contact_address: "",
   instagram: "",
+  facebook: "",
+  youtube: "",
+  tiktok: "",
+  website: "",
+  promoter_logos: [],
+  promoter_names: [],
   emergency_police: "190",
   emergency_ambulance: "192",
   emergency_fire: "193",
   emergency_tourist: "(84) 3232-2000",
   show_guides_tab: true,
   show_marketplace_tab: true,
+  show_about_tab: true,
 };
 
 type Ctx = {

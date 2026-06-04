@@ -120,6 +120,7 @@ class Partner(BaseModel):
     accessibility_features: List[str] = []
     badges: List[str] = []
     image_url: str
+    image_alt: str = ""
     email: str
     phone: str = ""
     whatsapp: str = ""
@@ -129,6 +130,40 @@ class Partner(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class PartnerCreate(BaseModel):
+    name: str
+    category: str
+    neighborhood: str = ""
+    short_description: str = ""
+    accessibility_features: List[str] = []
+    badges: List[str] = []
+    image_url: str = ""
+    image_alt: str = ""
+    email: str = ""
+    phone: str = ""
+    whatsapp: str = ""
+    price_from: str = ""
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+class PartnerUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    neighborhood: Optional[str] = None
+    short_description: Optional[str] = None
+    accessibility_features: Optional[List[str]] = None
+    badges: Optional[List[str]] = None
+    image_url: Optional[str] = None
+    image_alt: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    whatsapp: Optional[str] = None
+    price_from: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class InquiryCreate(BaseModel):
@@ -258,6 +293,8 @@ class SiteConfig(BaseModel):
     # Branding
     app_name: str = "Turismo que se Sente"
     app_logo_url: str = ""
+    app_icon_url: str = ""  # square icon
+    hero_image_url: str = ""  # banner hero image (about page)
     seal_image_url: str
     seal_alt: str
     # Banners
@@ -275,11 +312,25 @@ class SiteConfig(BaseModel):
     about_pt: str = ""
     about_en: str = ""
     about_es: str = ""
+    mission_pt: str = ""
+    mission_en: str = ""
+    mission_es: str = ""
+    vision_pt: str = ""
+    vision_en: str = ""
+    vision_es: str = ""
     # Contact
     contact_email: str = ""
     contact_phone: str = ""
     contact_whatsapp: str = ""
+    contact_address: str = ""
     instagram: str = ""
+    facebook: str = ""
+    youtube: str = ""
+    tiktok: str = ""
+    website: str = ""
+    # Partners / promoters
+    promoter_logos: List[str] = []  # list of image URLs of supporting institutions
+    promoter_names: List[str] = []
     # Emergency numbers
     emergency_police: str = "190"
     emergency_ambulance: str = "192"
@@ -288,12 +339,15 @@ class SiteConfig(BaseModel):
     # Maintenance / feature flags
     show_guides_tab: bool = True
     show_marketplace_tab: bool = True
+    show_about_tab: bool = True
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class SiteConfigUpdate(BaseModel):
     app_name: Optional[str] = None
     app_logo_url: Optional[str] = None
+    app_icon_url: Optional[str] = None
+    hero_image_url: Optional[str] = None
     seal_image_url: Optional[str] = None
     seal_alt: Optional[str] = None
     header_banner_title: Optional[str] = None
@@ -308,16 +362,30 @@ class SiteConfigUpdate(BaseModel):
     about_pt: Optional[str] = None
     about_en: Optional[str] = None
     about_es: Optional[str] = None
+    mission_pt: Optional[str] = None
+    mission_en: Optional[str] = None
+    mission_es: Optional[str] = None
+    vision_pt: Optional[str] = None
+    vision_en: Optional[str] = None
+    vision_es: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
     contact_whatsapp: Optional[str] = None
+    contact_address: Optional[str] = None
     instagram: Optional[str] = None
+    facebook: Optional[str] = None
+    youtube: Optional[str] = None
+    tiktok: Optional[str] = None
+    website: Optional[str] = None
+    promoter_logos: Optional[List[str]] = None
+    promoter_names: Optional[List[str]] = None
     emergency_police: Optional[str] = None
     emergency_ambulance: Optional[str] = None
     emergency_fire: Optional[str] = None
     emergency_tourist: Optional[str] = None
     show_guides_tab: Optional[bool] = None
     show_marketplace_tab: Optional[bool] = None
+    show_about_tab: Optional[bool] = None
 
 
 class ImageUpload(BaseModel):
@@ -329,6 +397,8 @@ DEFAULT_SITE_CONFIG = {
     "id": "default",
     "app_name": "Turismo que se Sente",
     "app_logo_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+    "app_icon_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+    "hero_image_url": "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=80",
     "seal_image_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG",
     "seal_alt": "Selo oficial Turismo que se Sente — Categoria Ouro. Medalha dourada com fundo roxo e ícones de cadeirante, cão-guia, audição assistida, Libras e Braille.",
     "header_banner_title": "Turismo que se Sente",
@@ -340,19 +410,35 @@ DEFAULT_SITE_CONFIG = {
     "welcome_sub_pt": "Explore a cidade com autonomia e inclusão.",
     "welcome_sub_en": "Explore the city with autonomy and inclusion.",
     "welcome_sub_es": "Explora la ciudad con autonomía e inclusión.",
-    "about_pt": "Turismo que se Sente é a primeira certificação brasileira de acessibilidade turística sensorial, criada pelo SENAC RN. Estabelecimentos e guias certificados passam por capacitação especializada em audiodescrição, Libras, atendimento a cães-guia e PCD.",
-    "about_en": "Turismo que se Sente is Brazil's first sensory tourism accessibility certification, created by SENAC RN. Certified businesses and guides undergo specialized training in audio description, Brazilian sign language, guide dogs, and accessibility for persons with disabilities.",
-    "about_es": "Turismo que se Sente es la primera certificación brasileña de accesibilidad turística sensorial, creada por SENAC RN. Establecimientos y guías certificados reciben capacitación especializada en audiodescripción, lengua de señas, perros guía y atención a personas con discapacidad.",
+    "about_pt": "Turismo que se Sente é a primeira certificação brasileira de acessibilidade turística sensorial, criada pelo SENAC RN. Estabelecimentos e guias certificados passam por capacitação especializada (120h) em audiodescrição, Libras, atendimento a cães-guia e PCD. Nosso objetivo é tornar Natal e o Rio Grande do Norte referências em turismo verdadeiramente inclusivo, onde pessoas com deficiência visual, auditiva, motora ou intelectual possam explorar com autonomia e dignidade.",
+    "about_en": "Turismo que se Sente is Brazil's first sensory tourism accessibility certification, created by SENAC RN. Certified businesses and guides undergo specialized training (120h) in audio description, Brazilian sign language (Libras), guide dogs, and accessibility for persons with disabilities. Our goal is to make Natal and Rio Grande do Norte references in truly inclusive tourism, where people with visual, hearing, motor or intellectual disabilities can explore with autonomy and dignity.",
+    "about_es": "Turismo que se Sente es la primera certificación brasileña de accesibilidad turística sensorial, creada por SENAC RN. Establecimientos y guías certificados reciben capacitación especializada (120h) en audiodescripción, lengua de señas brasileña (Libras), perros guía y atención a personas con discapacidad. Nuestro objetivo es convertir a Natal y Rio Grande do Norte en referencias de turismo verdaderamente inclusivo, donde personas con discapacidad visual, auditiva, motora o intelectual puedan explorar con autonomía y dignidad.",
+    "mission_pt": "Promover um turismo verdadeiramente inclusivo em Natal/RN, capacitando profissionais e estabelecimentos para receber visitantes com qualquer tipo de deficiência com respeito, autonomia e excelência.",
+    "mission_en": "Promote truly inclusive tourism in Natal/RN, training professionals and businesses to welcome visitors with any kind of disability with respect, autonomy, and excellence.",
+    "mission_es": "Promover un turismo verdaderamente inclusivo en Natal/RN, capacitando a profesionales y establecimientos para recibir visitantes con cualquier tipo de discapacidad con respeto, autonomía y excelencia.",
+    "vision_pt": "Ser referência nacional em turismo acessível e sensorial, mostrando que destinos podem ser sentidos por todos os sentidos, e que toda pessoa merece viver experiências turísticas com dignidade.",
+    "vision_en": "To be a national reference in accessible and sensory tourism, showing that destinations can be felt through all senses, and that everyone deserves to live tourism experiences with dignity.",
+    "vision_es": "Ser referencia nacional en turismo accesible y sensorial, mostrando que los destinos pueden sentirse con todos los sentidos, y que toda persona merece vivir experiencias turísticas con dignidad.",
     "contact_email": "contato@turismoquesesente.com.br",
     "contact_phone": "+55 84 3232-2000",
     "contact_whatsapp": "+55 84 99999-0000",
+    "contact_address": "SENAC RN — Av. Senador Salgado Filho, 2860 · Natal/RN · CEP 59056-000",
     "instagram": "@turismoquesesente",
+    "facebook": "turismoquesesente",
+    "youtube": "@turismoquesesente",
+    "tiktok": "@turismoquesesente",
+    "website": "https://www.turismoquesesente.com.br",
+    "promoter_logos": [
+        "https://upload.wikimedia.org/wikipedia/commons/3/30/Logo_do_Senac.svg",
+    ],
+    "promoter_names": ["SENAC RN"],
     "emergency_police": "190",
     "emergency_ambulance": "192",
     "emergency_fire": "193",
     "emergency_tourist": "(84) 3232-2000",
     "show_guides_tab": True,
     "show_marketplace_tab": True,
+    "show_about_tab": True,
     "updated_at": datetime.now(timezone.utc).isoformat(),
 }
 
@@ -1204,6 +1290,34 @@ async def get_partner(partner_id: str):
     return Partner(**p)
 
 
+# ===== PARTNERS - ADMIN PROTECTED =====
+@api_router.post("/partners", response_model=Partner)
+async def create_partner(payload: PartnerCreate, _admin: dict = Depends(require_admin)):
+    p = Partner(**payload.dict())
+    await db.partners.insert_one(p.dict())
+    return p
+
+
+@api_router.put("/partners/{partner_id}", response_model=Partner)
+async def update_partner(partner_id: str, payload: PartnerUpdate, _admin: dict = Depends(require_admin)):
+    update_data = {k: v for k, v in payload.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(400, "No fields to update")
+    result = await db.partners.update_one({"id": partner_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(404, "Partner not found")
+    p = await db.partners.find_one({"id": partner_id}, {"_id": 0})
+    return Partner(**p)
+
+
+@api_router.delete("/partners/{partner_id}")
+async def delete_partner(partner_id: str, _admin: dict = Depends(require_admin)):
+    result = await db.partners.delete_one({"id": partner_id})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Partner not found")
+    return {"deleted": True}
+
+
 @api_router.get("/seal/verify/{code}")
 async def verify_seal(code: str):
     p = await db.partners.find_one({"seal_code": code.upper()}, {"_id": 0})
@@ -1293,11 +1407,17 @@ async def startup_indexes_and_seed():
             updates["seal_image_url"] = DEFAULT_SITE_CONFIG["seal_image_url"]
             updates["seal_alt"] = DEFAULT_SITE_CONFIG["seal_alt"]
         # Set defaults for fields that didn't exist before (only if missing)
-        for new_key in ("app_name", "app_logo_url", "about_pt", "about_en", "about_es",
-                        "contact_email", "contact_phone", "contact_whatsapp", "instagram",
+        for new_key in ("app_name", "app_logo_url", "app_icon_url", "hero_image_url",
+                        "about_pt", "about_en", "about_es",
+                        "mission_pt", "mission_en", "mission_es",
+                        "vision_pt", "vision_en", "vision_es",
+                        "contact_email", "contact_phone", "contact_whatsapp", "contact_address",
+                        "instagram", "facebook", "youtube", "tiktok", "website",
+                        "promoter_logos", "promoter_names",
                         "emergency_police", "emergency_ambulance", "emergency_fire",
-                        "emergency_tourist", "show_guides_tab", "show_marketplace_tab"):
-            if new_key not in existing or existing.get(new_key) in (None, ""):
+                        "emergency_tourist", "show_guides_tab", "show_marketplace_tab",
+                        "show_about_tab"):
+            if new_key not in existing or existing.get(new_key) in (None, "", []):
                 if isinstance(DEFAULT_SITE_CONFIG[new_key], bool) and new_key in existing:
                     continue
                 updates[new_key] = DEFAULT_SITE_CONFIG[new_key]

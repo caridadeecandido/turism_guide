@@ -173,6 +173,7 @@ export default function AdminHome() {
       <View style={styles.quickRow}>
         <QuickAction icon="image-outline" label="Site / Selo" onPress={() => router.push("/admin/site")} testID="goto-site" />
         <QuickAction icon="people-outline" label="Guias" onPress={() => router.push("/admin/guides")} testID="goto-admin-guides" />
+        <QuickAction icon="storefront-outline" label="Parceiros" onPress={() => router.push("/admin/partners")} testID="goto-admin-partners" />
         <QuickAction icon="language-outline" label="Traduções" onPress={() => router.push("/admin/translations")} testID="goto-translations" />
         <QuickAction icon="mail-outline" label="Solicitações" onPress={() => router.push("/admin/inquiries")} testID="goto-inquiries" />
         <QuickAction icon="refresh" label="Re-popular" onPress={seed} testID="seed-button" />
