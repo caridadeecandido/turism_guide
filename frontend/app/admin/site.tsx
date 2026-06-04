@@ -40,7 +40,7 @@ export default function SiteCMS() {
     }
   };
 
-  const update = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const update = (k: keyof typeof form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -75,6 +75,11 @@ export default function SiteCMS() {
               testID="field-seal-alt"
               multiline
             />
+          </Section>
+
+          <Section title="Identidade do app">
+            <Field label="Nome do app" value={form.app_name || ""} onChange={(v) => update("app_name", v)} testID="field-app-name" />
+            <Field label="URL do logo (opcional)" value={form.app_logo_url || ""} onChange={(v) => update("app_logo_url", v)} testID="field-app-logo" multiline />
           </Section>
 
           <Section title="Cabeçalho (header)">
@@ -117,6 +122,41 @@ export default function SiteCMS() {
             <Field label="Subtítulo" value={form.welcome_sub_es} onChange={(v) => update("welcome_sub_es", v)} testID="field-welcome-sub-es" multiline />
           </Section>
 
+          <Section title="Sobre o projeto">
+            <Field label="Sobre (PT)" value={form.about_pt || ""} onChange={(v) => update("about_pt", v)} testID="field-about-pt" multiline />
+            <Field label="About (EN)" value={form.about_en || ""} onChange={(v) => update("about_en", v)} testID="field-about-en" multiline />
+            <Field label="Acerca (ES)" value={form.about_es || ""} onChange={(v) => update("about_es", v)} testID="field-about-es" multiline />
+          </Section>
+
+          <Section title="Contato oficial">
+            <Field label="E-mail" value={form.contact_email || ""} onChange={(v) => update("contact_email", v)} testID="field-contact-email" />
+            <Field label="Telefone" value={form.contact_phone || ""} onChange={(v) => update("contact_phone", v)} testID="field-contact-phone" />
+            <Field label="WhatsApp" value={form.contact_whatsapp || ""} onChange={(v) => update("contact_whatsapp", v)} testID="field-contact-whatsapp" />
+            <Field label="Instagram" value={form.instagram || ""} onChange={(v) => update("instagram", v)} testID="field-instagram" hint="Ex: @turismoquesesente" />
+          </Section>
+
+          <Section title="Emergência (botão SOS)">
+            <Field label="Polícia (Polícia Militar)" value={form.emergency_police || ""} onChange={(v) => update("emergency_police", v)} testID="field-em-police" />
+            <Field label="SAMU (ambulância)" value={form.emergency_ambulance || ""} onChange={(v) => update("emergency_ambulance", v)} testID="field-em-ambulance" />
+            <Field label="Bombeiros" value={form.emergency_fire || ""} onChange={(v) => update("emergency_fire", v)} testID="field-em-fire" />
+            <Field label="Turismo / DELETUR" value={form.emergency_tourist || ""} onChange={(v) => update("emergency_tourist", v)} testID="field-em-tourist" />
+          </Section>
+
+          <Section title="Visibilidade de seções">
+            <ToggleRow
+              label="Exibir aba de Guias Certificados"
+              value={form.show_guides_tab !== false}
+              onChange={(v) => update("show_guides_tab", v)}
+              testID="toggle-show-guides"
+            />
+            <ToggleRow
+              label="Exibir aba de Parceiros (Marketplace)"
+              value={form.show_marketplace_tab !== false}
+              onChange={(v) => update("show_marketplace_tab", v)}
+              testID="toggle-show-marketplace"
+            />
+          </Section>
+
           <View style={{ height: 80 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -130,6 +170,27 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <Text style={styles.sectionTitle}>{title}</Text>
       {children}
     </View>
+  );
+}
+
+function ToggleRow({ label, value, onChange, testID }: {
+  label: string; value: boolean; onChange: (v: boolean) => void; testID?: string;
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.toggleRow}
+      onPress={() => onChange(!value)}
+      testID={testID}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+    >
+      <Ionicons
+        name={value ? "checkbox" : "square-outline"}
+        size={24}
+        color={value ? colors.brand : colors.textMuted}
+      />
+      <Text style={styles.toggleLabel}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -185,4 +246,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border, fontSize: fontSizes.body,
   },
   hint: { color: colors.textMuted, fontSize: 11, fontStyle: "italic" },
+  toggleRow: {
+    flexDirection: "row", alignItems: "center", gap: spacing.sm,
+    paddingVertical: 8,
+  },
+  toggleLabel: { color: colors.text, fontSize: fontSizes.body, flex: 1 },
 });

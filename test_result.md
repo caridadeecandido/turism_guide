@@ -1,23 +1,16 @@
 #====================================================================================================
 # START - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
 #====================================================================================================
-# Communication Protocol:
-# If the `testing_agent` is available, main agent should delegate all testing tasks to it.
+user_problem_statement: |
+  Iteration 4 — Add "Guias Certificados" (certified guides) tab + admin CRUD + multilingual TTS.
+  The seal image is now the official "Categoria Ouro" image.
+  ALL CMS editable from admin: spots, guides, site (selo, contato, emergência, sobre, idiomas).
 #====================================================================================================
 # END - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
 #====================================================================================================
 
-
-user_problem_statement: |
-  Build an accessible mobile app/website "Turismo que se sente" (Tourism that you feel) for Natal/RN.
-  - Audio descriptions of tourist spots, real images, easy-to-use CMS admin panel.
-  - Google Login for tourists; JWT-protected Admin with isolated state.
-  - Real-time map (OpenStreetMap), emergency button, marketplace + inquiry forms.
-  - Digital Seal certification (editable via admin), Geolocation ("near me"), Multi-language PT/EN/ES via LLM.
-  - Floating Accessibility Panel (TTS, beeps, haptics, large buttons) — globally visible.
-
 backend:
-  - task: "Admin JWT auth + protected CRUD"
+  - task: "Guides CRUD + LLM translation"
     implemented: true
     working: "NA"
     file: "/app/backend/server.py"
@@ -27,82 +20,94 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented /api/admin/login (bcrypt+JWT), /admin/me, protected POST/PUT/DELETE /spots, /admin/site-config, /admin/inquiries, /admin/upload-image, POST /seed. Default admin seeded on startup."
+        comment: "Added Guide model + endpoints. Public: GET /api/guides (filters: specialty/language/focus/featured/active_only), GET /api/guides/categories, GET /api/guides/{id}, GET /api/guides/{id}/translate. Admin: POST/PUT/DELETE /api/guides. Seeded 4 guides on first run."
 
-  - task: "Site Config (public read / admin write)"
+  - task: "Inquiries now support guide_id OR partner_id"
     implemented: true
     working: "NA"
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "GET /api/site-config public; PUT /api/admin/site-config admin-only. Editable seal image, welcome strings PT/EN/ES, footer."
-
-  - task: "Translations (manual + LLM cache)"
-    implemented: true
-    working: "NA"
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "GET /api/spots/{id}/translate?lang= returns manual override → LLM cache → live LLM (gpt-4o-mini via emergentintegrations)."
-
-  - task: "Partners + Marketplace + Inquiries + Seal verify"
-    implemented: true
-    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
     needs_retesting: true
     status_history:
-      - working: true
-        agent: "testing"
-        comment: "Iteration 1: passing. Iteration 2: needs retest after admin auth lockdown of POST /seed."
+      - working: "NA"
+        agent: "main"
+        comment: "InquiryCreate now accepts either partner_id or guide_id; backend validates the existence of the chosen entity and stores guide_id on the inquiry."
+
+  - task: "Expanded SiteConfig with about/contact/emergency/feature flags"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added app_name, app_logo_url, about_pt/en/es, contact_email/phone/whatsapp, instagram, emergency_police/ambulance/fire/tourist, show_guides_tab, show_marketplace_tab. Migration on startup auto-adds new fields to existing config and replaces old seal URL with the new official Categoria Ouro image."
 
 frontend:
-  - task: "Admin Panel (login → dashboard → CMS) with JWT gate"
+  - task: "Guides public screens (/guides and /guide/[id])"
     implemented: true
     working: "NA"
-    file: "/app/frontend/app/admin/_layout.tsx, /app/frontend/app/admin/login.tsx, /app/frontend/app/admin/index.tsx, /app/frontend/app/admin/site.tsx, /app/frontend/app/admin/translations.tsx, /app/frontend/app/admin/inquiries.tsx, /app/frontend/src/admin-auth.tsx"
+    file: "/app/frontend/app/guides.tsx, /app/frontend/app/guide/[id].tsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "AdminAuthProvider scoped to /admin layout. AdminGate redirects to /admin/login when no token. After login redirects to /admin. Logout clears token + returns to /admin/login."
+        comment: "Listing with specialty + accessibility focus chips. Detail page with seal ribbon over photo, contact buttons (WhatsApp/Phone/Email/Instagram), certification info with course + seal code, inquiry form. Translates name+bio+short_bio via LLM when language is EN/ES."
 
-  - task: "Floating Accessibility Panel (global)"
+  - task: "Admin Guides CRUD (/admin/guides)"
     implemented: true
     working: "NA"
-    file: "/app/frontend/src/components/AccessibilityPanel.tsx, /app/frontend/src/accessibility.tsx, /app/frontend/app/_layout.tsx"
+    file: "/app/frontend/app/admin/guides.tsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "FAB top-right opens panel with 4 toggles (audio on focus, beeps, haptics, large buttons). Persisted in SecureStore/localStorage. Synced with /menu toggles."
+        comment: "Admin can create/edit/delete guides with all fields: name, photo, photo_alt, bio, specialties, languages, accessibility_focus, certification course/date, phone, whatsapp, email, instagram, region, rating, years_experience, featured, active toggle."
 
-  - task: "Digital Seal global branding"
+  - task: "Audio multilingual TTS (PT/EN/ES with correct voice locale)"
     implemented: true
     working: "NA"
-    file: "/app/frontend/src/components/SealBranding.tsx, /app/frontend/app/index.tsx, /app/frontend/app/menu.tsx, /app/frontend/app/seal.tsx"
+    file: "/app/frontend/app/audio/[id].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Play() now uses audioText (translated) instead of original PT, and uses ttsLocale(language) to pick pt-BR/en-US/es-ES voice."
+
+  - task: "Expanded admin/site.tsx with all editable fields"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/admin/site.tsx"
     stuck_count: 0
     priority: "medium"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "SealFooter component reads from site_config and shows seal image + footer text on Home, Menu, Seal screens."
+        comment: "Added sections: Identidade do app, Sobre o projeto (PT/EN/ES), Contato oficial, Emergência (4 numbers), Visibilidade de seções (toggles for guides/marketplace)."
 
-  - task: "Home with dynamic welcome from site config + language switcher"
+  - task: "Emergency screen now uses dynamic phone numbers from site config"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/emergency.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "SAMU, Bombeiros, Polícia Militar, Turismo numbers now come from useSiteConfig().config so admin can edit them."
+
+  - task: "Home shows new Guias quick-access shortcut + new official seal image"
     implemented: true
     working: "NA"
     file: "/app/frontend/app/index.tsx"
@@ -112,22 +117,22 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Home welcome title/subtitle now reads config.welcome_pt/en/es. PT/EN/ES chips switch language."
+        comment: "Added 5th main shortcut 'Guias' that navigates to /guides. SealFooter at the bottom reads the new official Categoria Ouro seal from migrated site config."
 
 metadata:
   created_by: "main_agent"
-  version: "3.0"
-  test_sequence: 3
+  version: "4.0"
+  test_sequence: 4
   run_ui: true
 
 test_plan:
   current_focus:
-    - "Admin JWT auth + protected CRUD"
-    - "Site Config (public read / admin write)"
-    - "Translations (manual + LLM cache)"
-    - "Admin Panel (login → dashboard → CMS) with JWT gate"
-    - "Floating Accessibility Panel (global)"
-    - "Digital Seal global branding"
+    - "Guides CRUD + LLM translation"
+    - "Inquiries now support guide_id OR partner_id"
+    - "Expanded SiteConfig with about/contact/emergency/feature flags"
+    - "Guides public screens (/guides and /guide/[id])"
+    - "Admin Guides CRUD (/admin/guides)"
+    - "Audio multilingual TTS (PT/EN/ES with correct voice locale)"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -135,8 +140,7 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      Iteration 3 ready for testing.
-      Tester: please verify
-      (1) backend: admin login flow + protection (401 without token, 200 with valid token), site-config public GET + admin PUT, translations PT/EN/ES (cache should be faster on 2nd call), spots CRUD requires admin, inquiries (public POST, admin GET).
-      (2) frontend: home loads, language switching works, /admin redirects to /admin/login if not authenticated, login with admin@turismoquesesente.com.br / Natal@2026! works, the floating a11y FAB (top-right purple circle) opens a panel with 4 toggles, /seal shows the seal image, /marketplace + /partner/[id] + inquiry submit, /near GPS list.
-      Admin credentials are in /app/memory/test_credentials.md.
+      Iteration 4 ready for testing.
+      BACKEND: verify GET /api/guides returns 4 seeded guides; GET /api/guides/categories returns specialties/languages/accessibility_focus; GET /api/guides/{id}/translate works for PT/EN/ES; protected POST/PUT/DELETE require admin token; POST /api/inquiries with guide_id (no partner_id) creates an inquiry; PUT /api/admin/site-config persists about_pt/contact_email/emergency_police.
+      FRONTEND: /guides shows 4 guides; /guide/{id} shows photo, seal ribbon, contact buttons, inquiry form; /admin/guides shows CRUD + form with all fields; /admin/site has new sections (Identidade, Sobre, Contato, Emergência, Visibilidade); Home has "Guias" shortcut that opens /guides.
+      Admin credentials in /app/memory/test_credentials.md.

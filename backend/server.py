@@ -131,9 +131,22 @@ class Partner(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
+class InquiryCreate(BaseModel):
+    partner_id: Optional[str] = None
+    guide_id: Optional[str] = None
+    name: str
+    email: str
+    phone: str = ""
+    message: str
+    date: str = ""
+    people: int = 1
+    accessibility_needs: str = ""
+
+
 class Inquiry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    partner_id: str
+    partner_id: Optional[str] = None
+    guide_id: Optional[str] = None
     user_id: Optional[str] = None
     name: str
     email: str
@@ -146,15 +159,78 @@ class Inquiry(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
-class InquiryCreate(BaseModel):
-    partner_id: str
+# ========== GUIDES (Certified tourist guides) ==========
+class Guide(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    email: str
+    photo_url: str = ""
+    photo_alt: str = ""
+    bio: str = ""
+    short_bio: str = ""
+    specialties: List[str] = []  # ex: ["Praia", "História", "Gastronomia"]
+    languages: List[str] = []  # ["Português", "Inglês", "Espanhol", "Libras"]
+    certification_course: str = "Curso Turismo que se Sente - Categoria Ouro"
+    certification_date: str = ""
+    accessibility_focus: List[str] = []  # ["Audiodescrição", "Libras", "Cadeirantes", "Baixa visão", "Autismo"]
     phone: str = ""
-    message: str
-    date: str = ""
-    people: int = 1
-    accessibility_needs: str = ""
+    whatsapp: str = ""
+    email: str = ""
+    instagram: str = ""
+    region: str = "Natal/RN"
+    rating: float = 5.0
+    years_experience: int = 0
+    has_seal: bool = True
+    seal_code: str = Field(default_factory=lambda: uuid.uuid4().hex[:10].upper())
+    featured: bool = False
+    active: bool = True
+    translations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class GuideCreate(BaseModel):
+    name: str
+    photo_url: str = ""
+    photo_alt: str = ""
+    bio: str = ""
+    short_bio: str = ""
+    specialties: List[str] = []
+    languages: List[str] = []
+    certification_course: str = "Curso Turismo que se Sente - Categoria Ouro"
+    certification_date: str = ""
+    accessibility_focus: List[str] = []
+    phone: str = ""
+    whatsapp: str = ""
+    email: str = ""
+    instagram: str = ""
+    region: str = "Natal/RN"
+    rating: float = 5.0
+    years_experience: int = 0
+    featured: bool = False
+    active: bool = True
+    translations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+
+
+class GuideUpdate(BaseModel):
+    name: Optional[str] = None
+    photo_url: Optional[str] = None
+    photo_alt: Optional[str] = None
+    bio: Optional[str] = None
+    short_bio: Optional[str] = None
+    specialties: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
+    certification_course: Optional[str] = None
+    certification_date: Optional[str] = None
+    accessibility_focus: Optional[List[str]] = None
+    phone: Optional[str] = None
+    whatsapp: Optional[str] = None
+    email: Optional[str] = None
+    instagram: Optional[str] = None
+    region: Optional[str] = None
+    rating: Optional[float] = None
+    years_experience: Optional[int] = None
+    featured: Optional[bool] = None
+    active: Optional[bool] = None
+    translations: Optional[Dict[str, Dict[str, str]]] = None
 
 
 class TranslateResponse(BaseModel):
@@ -179,21 +255,45 @@ class AdminToken(BaseModel):
 
 class SiteConfig(BaseModel):
     id: str = "default"
+    # Branding
+    app_name: str = "Turismo que se Sente"
+    app_logo_url: str = ""
     seal_image_url: str
     seal_alt: str
+    # Banners
     header_banner_title: str
     header_banner_subtitle: str
     footer_text: str
+    # Welcome strings
     welcome_pt: str
     welcome_en: str
     welcome_es: str
     welcome_sub_pt: str
     welcome_sub_en: str
     welcome_sub_es: str
+    # About strings
+    about_pt: str = ""
+    about_en: str = ""
+    about_es: str = ""
+    # Contact
+    contact_email: str = ""
+    contact_phone: str = ""
+    contact_whatsapp: str = ""
+    instagram: str = ""
+    # Emergency numbers
+    emergency_police: str = "190"
+    emergency_ambulance: str = "192"
+    emergency_fire: str = "193"
+    emergency_tourist: str = "(84) 3232-2000"
+    # Maintenance / feature flags
+    show_guides_tab: bool = True
+    show_marketplace_tab: bool = True
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class SiteConfigUpdate(BaseModel):
+    app_name: Optional[str] = None
+    app_logo_url: Optional[str] = None
     seal_image_url: Optional[str] = None
     seal_alt: Optional[str] = None
     header_banner_title: Optional[str] = None
@@ -205,6 +305,19 @@ class SiteConfigUpdate(BaseModel):
     welcome_sub_pt: Optional[str] = None
     welcome_sub_en: Optional[str] = None
     welcome_sub_es: Optional[str] = None
+    about_pt: Optional[str] = None
+    about_en: Optional[str] = None
+    about_es: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_whatsapp: Optional[str] = None
+    instagram: Optional[str] = None
+    emergency_police: Optional[str] = None
+    emergency_ambulance: Optional[str] = None
+    emergency_fire: Optional[str] = None
+    emergency_tourist: Optional[str] = None
+    show_guides_tab: Optional[bool] = None
+    show_marketplace_tab: Optional[bool] = None
 
 
 class ImageUpload(BaseModel):
@@ -214,8 +327,10 @@ class ImageUpload(BaseModel):
 
 DEFAULT_SITE_CONFIG = {
     "id": "default",
-    "seal_image_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
-    "seal_alt": "Selo Turismo que se Sente — certificação de acessibilidade para pessoas com deficiência visual",
+    "app_name": "Turismo que se Sente",
+    "app_logo_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+    "seal_image_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG",
+    "seal_alt": "Selo oficial Turismo que se Sente — Categoria Ouro. Medalha dourada com fundo roxo e ícones de cadeirante, cão-guia, audição assistida, Libras e Braille.",
     "header_banner_title": "Turismo que se Sente",
     "header_banner_subtitle": "Natal/RN acessível para todos",
     "footer_text": "Projeto SENAC RN · Turismo que se Sente © 2026",
@@ -225,6 +340,19 @@ DEFAULT_SITE_CONFIG = {
     "welcome_sub_pt": "Explore a cidade com autonomia e inclusão.",
     "welcome_sub_en": "Explore the city with autonomy and inclusion.",
     "welcome_sub_es": "Explora la ciudad con autonomía e inclusión.",
+    "about_pt": "Turismo que se Sente é a primeira certificação brasileira de acessibilidade turística sensorial, criada pelo SENAC RN. Estabelecimentos e guias certificados passam por capacitação especializada em audiodescrição, Libras, atendimento a cães-guia e PCD.",
+    "about_en": "Turismo que se Sente is Brazil's first sensory tourism accessibility certification, created by SENAC RN. Certified businesses and guides undergo specialized training in audio description, Brazilian sign language, guide dogs, and accessibility for persons with disabilities.",
+    "about_es": "Turismo que se Sente es la primera certificación brasileña de accesibilidad turística sensorial, creada por SENAC RN. Establecimientos y guías certificados reciben capacitación especializada en audiodescripción, lengua de señas, perros guía y atención a personas con discapacidad.",
+    "contact_email": "contato@turismoquesesente.com.br",
+    "contact_phone": "+55 84 3232-2000",
+    "contact_whatsapp": "+55 84 99999-0000",
+    "instagram": "@turismoquesesente",
+    "emergency_police": "190",
+    "emergency_ambulance": "192",
+    "emergency_fire": "193",
+    "emergency_tourist": "(84) 3232-2000",
+    "show_guides_tab": True,
+    "show_marketplace_tab": True,
     "updated_at": datetime.now(timezone.utc).isoformat(),
 }
 
@@ -424,6 +552,90 @@ SEED_PARTNERS = [
 ]
 
 
+SEED_GUIDES = [
+    {
+        "name": "Carla Albuquerque",
+        "photo_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80",
+        "photo_alt": "Mulher sorridente de cabelo cacheado, camiseta clara, ao fundo paisagem de praia de Natal.",
+        "short_bio": "Guia sensorial especializada em audiodescrição de praias e dunas.",
+        "bio": "Carla é guia de turismo há 8 anos e foi a primeira profissional certificada Categoria Ouro pelo programa Turismo que se Sente. Especialista em audiodescrição literária e roteiros sensoriais pelo litoral potiguar, ela conduz visitantes com baixa visão e cegueira pelos principais pontos turísticos com narrativas ricas em detalhes táteis, olfativos e sonoros.",
+        "specialties": ["Praia", "Dunas", "Audiodescrição literária"],
+        "languages": ["Português", "Inglês", "Espanhol"],
+        "certification_course": "Curso Turismo que se Sente - Categoria Ouro (120h)",
+        "certification_date": "2025-08-15",
+        "accessibility_focus": ["Audiodescrição", "Baixa visão", "Cegueira"],
+        "phone": "+55 84 99888-7766",
+        "whatsapp": "+55 84 99888-7766",
+        "email": "carla.guide@turismoquesesente.com.br",
+        "instagram": "@carlaguia.natal",
+        "region": "Natal/RN",
+        "rating": 4.9,
+        "years_experience": 8,
+        "featured": True,
+    },
+    {
+        "name": "Rafael Medeiros",
+        "photo_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
+        "photo_alt": "Homem jovem com camisa polo, óculos escuros e crachá de guia de turismo, sorrindo.",
+        "short_bio": "Guia intérprete de Libras com foco em roteiros históricos.",
+        "bio": "Rafael é intérprete de Libras certificado pelo MEC e guia de turismo desde 2018. Conduz tours pelo Centro Histórico, Forte dos Reis Magos e Catedral Nova com tradução simultânea em Libras e descrição rica de detalhes arquitetônicos. Atende grupos de turistas surdos do Brasil e exterior.",
+        "specialties": ["História", "Cultura", "Arquitetura"],
+        "languages": ["Português", "Libras", "Inglês"],
+        "certification_course": "Curso Turismo que se Sente - Categoria Ouro (120h)",
+        "certification_date": "2025-09-20",
+        "accessibility_focus": ["Libras", "Surdos", "Surdocegueira"],
+        "phone": "+55 84 99777-5544",
+        "whatsapp": "+55 84 99777-5544",
+        "email": "rafael.libras@turismoquesesente.com.br",
+        "instagram": "@rafaellibras.natal",
+        "region": "Natal/RN",
+        "rating": 5.0,
+        "years_experience": 6,
+        "featured": True,
+    },
+    {
+        "name": "Juliana Cabral",
+        "photo_url": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&q=80",
+        "photo_alt": "Mulher sorridente com cabelos lisos longos, jaqueta azul, em ambiente turístico ao ar livre.",
+        "short_bio": "Especialista em turismo adaptado para cadeirantes e PCD motora.",
+        "bio": "Juliana é fisioterapeuta e guia de turismo, especialista em roteiros adaptados para pessoas com deficiência motora. Mapeia rotas de mobilidade reduzida em Natal, conhece todos os transportes acessíveis e parcerias com locadoras de cadeira de praia. Atende famílias e excursões com PCD.",
+        "specialties": ["Praia", "Parques", "Mirantes"],
+        "languages": ["Português", "Inglês"],
+        "certification_course": "Curso Turismo que se Sente - Categoria Ouro (120h)",
+        "certification_date": "2025-10-05",
+        "accessibility_focus": ["Cadeirantes", "Mobilidade reduzida", "Idosos"],
+        "phone": "+55 84 98555-3322",
+        "whatsapp": "+55 84 98555-3322",
+        "email": "juliana.adapt@turismoquesesente.com.br",
+        "instagram": "@julianacabral.guia",
+        "region": "Natal/RN e Litoral Sul",
+        "rating": 4.8,
+        "years_experience": 5,
+        "featured": True,
+    },
+    {
+        "name": "Diego Fernandes",
+        "photo_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80",
+        "photo_alt": "Homem de barba e camisa azul-clara, sorrindo, em ambiente externo ensolarado.",
+        "short_bio": "Guia neurodivergente especializado em autismo e sensibilidade sensorial.",
+        "bio": "Diego é neurodivergente e construiu sua prática de guia turístico em torno do TEA (Transtorno do Espectro Autista). Oferece roteiros com baixa estimulação sensorial, mapas visuais, agendamento de horários menos lotados e ambientes calmos. Atende famílias com crianças e adultos autistas.",
+        "specialties": ["Praia", "Cafeterias acolhedoras", "Roteiros calmos"],
+        "languages": ["Português", "Inglês"],
+        "certification_course": "Curso Turismo que se Sente - Categoria Ouro (120h)",
+        "certification_date": "2025-11-12",
+        "accessibility_focus": ["Autismo (TEA)", "Sensibilidade sensorial", "TDAH"],
+        "phone": "+55 84 98112-9933",
+        "whatsapp": "+55 84 98112-9933",
+        "email": "diego.tea@turismoquesesente.com.br",
+        "instagram": "@diegotea.natal",
+        "region": "Natal/RN",
+        "rating": 4.9,
+        "years_experience": 4,
+        "featured": False,
+    },
+]
+
+
 # ========== AUTH HELPERS ==========
 def hash_pwd(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
@@ -575,8 +787,160 @@ async def seed_database(_admin: dict = Depends(require_admin)):
     await db.spots.insert_many([TouristSpot(**s).dict() for s in SEED_SPOTS])
     await db.partners.delete_many({})
     await db.partners.insert_many([Partner(**p).dict() for p in SEED_PARTNERS])
+    await db.guides.delete_many({})
+    await db.guides.insert_many([Guide(**g).dict() for g in SEED_GUIDES])
     await db.translations.delete_many({})
-    return {"seeded_spots": len(SEED_SPOTS), "seeded_partners": len(SEED_PARTNERS)}
+    return {
+        "seeded_spots": len(SEED_SPOTS),
+        "seeded_partners": len(SEED_PARTNERS),
+        "seeded_guides": len(SEED_GUIDES),
+    }
+
+
+# ========== ROUTES: GUIDES ==========
+@api_router.get("/guides", response_model=List[Guide])
+async def list_guides(
+    specialty: Optional[str] = None,
+    language: Optional[str] = None,
+    focus: Optional[str] = None,
+    featured: Optional[bool] = None,
+    active_only: bool = True,
+):
+    query: dict = {}
+    if active_only:
+        query["active"] = True
+    if specialty and specialty.lower() != "todos":
+        query["specialties"] = specialty
+    if language:
+        query["languages"] = language
+    if focus:
+        query["accessibility_focus"] = focus
+    if featured is not None:
+        query["featured"] = featured
+    guides = await db.guides.find(query, {"_id": 0}).sort("rating", -1).to_list(1000)
+    return [Guide(**g) for g in guides]
+
+
+@api_router.get("/guides/categories")
+async def list_guide_categories():
+    specialties = await db.guides.distinct("specialties")
+    languages = await db.guides.distinct("languages")
+    focus = await db.guides.distinct("accessibility_focus")
+    return {
+        "specialties": ["Todos"] + sorted([s for s in specialties if s]),
+        "languages": sorted([l for l in languages if l]),
+        "accessibility_focus": sorted([f for f in focus if f]),
+    }
+
+
+@api_router.get("/guides/{guide_id}", response_model=Guide)
+async def get_guide(guide_id: str):
+    g = await db.guides.find_one({"id": guide_id}, {"_id": 0})
+    if not g:
+        raise HTTPException(404, "Guide not found")
+    return Guide(**g)
+
+
+@api_router.get("/guides/{guide_id}/translate", response_model=TranslateResponse)
+async def translate_guide(guide_id: str, lang: str = "en"):
+    if lang not in ("en", "es", "pt"):
+        raise HTTPException(400, "lang must be 'en', 'es' or 'pt'")
+    g = await db.guides.find_one({"id": guide_id}, {"_id": 0})
+    if not g:
+        raise HTTPException(404, "Guide not found")
+
+    if lang == "pt":
+        return TranslateResponse(
+            language="pt", source="original",
+            name=g["name"],
+            short_description=g.get("short_bio", ""),
+            full_description=g.get("bio", ""),
+            audio_description=g.get("bio", ""),
+        )
+
+    manual = (g.get("translations") or {}).get(lang) or {}
+    if manual.get("bio"):
+        return TranslateResponse(
+            language=lang, source="manual",
+            name=manual.get("name") or g["name"],
+            short_description=manual.get("short_bio", g.get("short_bio", "")),
+            full_description=manual.get("bio", g.get("bio", "")),
+            audio_description=manual.get("bio", g.get("bio", "")),
+        )
+
+    cache_key = f"guide:{guide_id}:{lang}"
+    cached = await db.translations.find_one({"cache_key": cache_key}, {"_id": 0})
+    if cached and cached.get("name"):
+        return TranslateResponse(
+            language=lang, source="llm",
+            name=cached["name"],
+            short_description=cached.get("short_description", ""),
+            full_description=cached.get("full_description", ""),
+            audio_description=cached.get("audio_description", ""),
+        )
+
+    target = "English" if lang == "en" else "Spanish (Spain)"
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"translate-guide-{guide_id}-{lang}",
+            system_message=f"You are a professional translator. Translate the Brazilian Portuguese text to natural, fluent {target}. Return ONLY the translation.",
+        ).with_model("openai", "gpt-4o-mini")
+
+        async def tx(text: str) -> str:
+            if not text:
+                return ""
+            return (await chat.send_message(UserMessage(text=text))).strip()
+
+        translated = {
+            "name": g["name"],  # Names of people stay the same
+            "short_description": await tx(g.get("short_bio", "")),
+            "full_description": await tx(g.get("bio", "")),
+            "audio_description": await tx(g.get("bio", "")),
+        }
+    except Exception as e:
+        logger.error("Guide LLM translation error: %s", e)
+        raise HTTPException(503, f"Translation service unavailable: {e}")
+
+    if translated.get("full_description"):
+        await db.translations.update_one(
+            {"cache_key": cache_key},
+            {"$set": {"cache_key": cache_key, "guide_id": guide_id, "language": lang, **translated}},
+            upsert=True,
+        )
+    return TranslateResponse(language=lang, source="llm", **translated)
+
+
+# ===== GUIDES - ADMIN PROTECTED =====
+@api_router.post("/guides", response_model=Guide)
+async def create_guide(payload: GuideCreate, _admin: dict = Depends(require_admin)):
+    g = Guide(**payload.dict())
+    await db.guides.insert_one(g.dict())
+    return g
+
+
+@api_router.put("/guides/{guide_id}", response_model=Guide)
+async def update_guide(guide_id: str, payload: GuideUpdate, _admin: dict = Depends(require_admin)):
+    update_data = {k: v for k, v in payload.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(400, "No fields to update")
+    result = await db.guides.update_one({"id": guide_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(404, "Guide not found")
+    if any(k in update_data for k in ("name", "bio", "short_bio")):
+        await db.translations.delete_many({"guide_id": guide_id})
+    g = await db.guides.find_one({"id": guide_id}, {"_id": 0})
+    return Guide(**g)
+
+
+@api_router.delete("/guides/{guide_id}")
+async def delete_guide(guide_id: str, _admin: dict = Depends(require_admin)):
+    result = await db.guides.delete_one({"id": guide_id})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Guide not found")
+    await db.translations.delete_many({"guide_id": guide_id})
+    return {"deleted": True}
 
 
 # ========== ROUTES: TRANSLATION (manual override + LLM fallback) ==========
@@ -889,6 +1253,10 @@ async def startup_indexes_and_seed():
     if await db.partners.count_documents({}) == 0:
         await db.partners.insert_many([Partner(**p).dict() for p in SEED_PARTNERS])
         logger.info("Seeded %d partners", len(SEED_PARTNERS))
+    # Seed guides
+    if await db.guides.count_documents({}) == 0:
+        await db.guides.insert_many([Guide(**g).dict() for g in SEED_GUIDES])
+        logger.info("Seeded %d guides", len(SEED_GUIDES))
     # Seed default admin
     if await db.admins.count_documents({}) == 0:
         admin_doc = {
@@ -900,10 +1268,33 @@ async def startup_indexes_and_seed():
         }
         await db.admins.insert_one(admin_doc)
         logger.info("Seeded default admin: %s", DEFAULT_ADMIN_EMAIL)
-    # Seed site config
+    # Seed/migrate site config
     if await db.site_config.count_documents({}) == 0:
         await db.site_config.insert_one(dict(DEFAULT_SITE_CONFIG))
         logger.info("Seeded default site config")
+    else:
+        existing = await db.site_config.find_one({"id": "default"}) or {}
+        # Migrate: replace OLD seal URL with the new official seal automatically
+        OLD_SEAL_URLS = [
+            "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+        ]
+        updates: dict = {}
+        if existing.get("seal_image_url") in OLD_SEAL_URLS:
+            updates["seal_image_url"] = DEFAULT_SITE_CONFIG["seal_image_url"]
+            updates["seal_alt"] = DEFAULT_SITE_CONFIG["seal_alt"]
+        # Set defaults for fields that didn't exist before (only if missing)
+        for new_key in ("app_name", "app_logo_url", "about_pt", "about_en", "about_es",
+                        "contact_email", "contact_phone", "contact_whatsapp", "instagram",
+                        "emergency_police", "emergency_ambulance", "emergency_fire",
+                        "emergency_tourist", "show_guides_tab", "show_marketplace_tab"):
+            if new_key not in existing or existing.get(new_key) in (None, ""):
+                if isinstance(DEFAULT_SITE_CONFIG[new_key], bool) and new_key in existing:
+                    continue
+                updates[new_key] = DEFAULT_SITE_CONFIG[new_key]
+        if updates:
+            updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await db.site_config.update_one({"id": "default"}, {"$set": updates})
+            logger.info("Migrated site_config: %s", list(updates.keys()))
     # Purge bad translation cache from previous iteration (gpt-5.4-mini bug)
     await db.translations.delete_many({})
     logger.info("Cleared translations cache (forces fresh LLM with gpt-4o-mini)")

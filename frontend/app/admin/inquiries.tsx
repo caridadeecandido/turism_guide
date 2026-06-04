@@ -10,7 +10,8 @@ const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 type Inquiry = {
   id: string;
-  partner_id: string;
+  partner_id?: string;
+  guide_id?: string;
   name: string;
   email: string;
   phone: string;
@@ -60,7 +61,19 @@ export default function Inquiries() {
           {items.map((it) => (
             <View key={it.id} style={styles.card} testID={`inq-${it.id}`}>
               <View style={styles.cardTop}>
-                <Text style={styles.name}>{it.name}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name}>{it.name}</Text>
+                  <View style={styles.targetPill}>
+                    <Ionicons
+                      name={it.guide_id ? "person" : "storefront"}
+                      size={11}
+                      color={it.guide_id ? "#F59E0B" : colors.brand}
+                    />
+                    <Text style={styles.targetText}>
+                      {it.guide_id ? `Guia · ${it.guide_id.slice(0, 8)}` : it.partner_id ? `Parceiro · ${it.partner_id.slice(0, 8)}` : "—"}
+                    </Text>
+                  </View>
+                </View>
                 <View style={[styles.statusPill, { backgroundColor: it.status === "new" ? colors.badgeBg : colors.successBg }]}>
                   <Text style={[styles.statusText, { color: it.status === "new" ? colors.brand : colors.success }]}>
                     {it.status}
@@ -126,4 +139,14 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: spacing.sm },
   actionBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radii.pill, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border },
   actionText: { color: colors.brand, fontSize: 12, fontWeight: "700" },
+  targetPill: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: radii.pill,
+    alignSelf: "flex-start",
+    marginTop: 4,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  targetText: { color: colors.textSecondary, fontSize: 10, fontWeight: "700" },
 });

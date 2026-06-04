@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 4 — Backend & Frontend tested for the Guides feature, expanded SiteConfig, inquiry guide_id support, and new seal URL. Backend: 19/22 pytest pass. CRITICAL backend bug: POST /api/inquiries unconditionally validates partner_id (line 1224 of server.py) — guide_id inquiries return 404 'Partner not found'; inquiries with neither id return 404 instead of 400; admin_inquiries therefore never contains a guide_id record. All other backend checks green: 4 guides seeded with 10-char hex seal_code, public list/detail/filter/categories work, LLM translation EN/ES works and keeps people's names, admin CRUD on /api/guides works (seal auto-generated), expanded site_config has all new fields, seal URL contains the new asset id '279fc9d7-...-c1224', about_pt and show_guides_tab persist via PUT. Frontend: /guides lists 4 guides with photos/specialties/languages/seal ribbon, filters render, navigation to /guide/{id} works, contact buttons (whatsapp-btn/phone-btn/email-btn/instagram-btn) render with brand colors, inquiry form (testIDs inq-name/email/message/submit) opens — but submission FAILS due to the backend bug above. Home shows 5-shortcut row (Mapa/Guias/Parceiros/Perto/Emergência) and SealFooter loads the new official seal. Admin dashboard shows 5 quick actions (goto-site, goto-admin-guides, goto-translations, goto-inquiries, seed-button); /admin/guides shows 4 guide rows with edit/delete and the new-guide form (save-guide-button + all g-* fields). /admin/site shows all new sections (Identidade do app, Sobre o projeto, Contato oficial, Emergência, Visibilidade). /emergency reads numbers from site_config (192/193/190 visible). Note: testIDs in implementation differ from the review request — actual values: admin-email-input/admin-password-input/admin-login-button (not admin-email/password/login-submit), goto-admin-guides (not quick-guides), open-inquiry-btn (not open-inquiry), whatsapp-btn/phone-btn/email-btn/instagram-btn (not contact-*). Direct URL navigation to /admin/guides and /admin/site after a hard reload was failing with Unmatched Route until expo bundler caught up — flows work fine when navigated via in-app links (router.push).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/inquiries", "issue": "Endpoint always queries db.partners by payload.partner_id and raises 404 'Partner not found' even when guide_id is provided (or both are None). guide_id is never validated or persisted via DB lookup. Located at server.py:1222-1231. Must (a) accept guide_id without partner_id, (b) when guide_id provided, look up db.guides and 404 only if not found, (c) reject (400) when neither provided.", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/inquiries", "issue": "When neither partner_id nor guide_id is provided, response is 404 'Partner not found'. Should be 400 'partner_id or guide_id required'."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "guide/[id].tsx inquiry submit", "issue": "Submitting the inquiry form for a guide POSTs {guide_id,name,email,message} but receives 404 from backend (see backend critical bug). UI silently fails or shows error. Reference: /app/frontend/app/guide/[id].tsx:359 (inq-submit). Will work automatically once backend bug is fixed.", "testID": "inq-submit", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Guide inquiry submission", "issue": "Frontend correctly posts guide_id, but backend rejects it (404). End-to-end inquiry flow for guides is broken.", "affected_testIDs": ["open-inquiry-btn", "inq-submit"]}
+    ],
+    "design_issues": [
+      {"screen": "global", "issues": ["Recurring console warning: 'shadow*' style props are deprecated by react-native-web — migrate to boxShadow. Non-blocking, same as iteration 3."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration4.py",
+    "/app/test_reports/pytest/pytest_iter4.xml"
+  ],
+  "action_items": [
+    "FIX BACKEND CRITICAL: /app/backend/server.py:1222 create_inquiry — accept guide_id, validate against db.guides, return 400 when neither partner_id nor guide_id is provided. Suggested logic: if payload.partner_id: validate partner; elif payload.guide_id: validate guide; else 400.",
+    "(Optional) Align testIDs with the review-request spec OR update the spec: currently admin-email-input/admin-password-input/admin-login-button, goto-admin-guides, open-inquiry-btn, whatsapp-btn/phone-btn/email-btn/instagram-btn, new-guide-button, edit-guide-/delete-guide-.",
+    "(Optional) Once backend is fixed, re-run /app/backend/tests/test_iteration4.py — expecting 22/22 green and the guide inquiry UI flow to succeed."
+  ],
+  "critical_code_review_comments": [
+    "server.py:1222 create_inquiry function predates the guide_id addition: payload schema accepts guide_id but the handler still hardcodes partner_id validation. This is the single largest defect of iteration 4.",
+    "Models look correct (InquiryCreate/Inquiry both have Optional partner_id and guide_id). Persistence already includes guide_id in the dict via payload.dict().",
+    "Guide CRUD endpoints are clean: admin-protected, exclude _id, invalidate translation cache on bio/short_bio/name changes — good.",
+    "translate_guide correctly keeps the person's name and translates short_bio/bio to en/es with gpt-4o-mini caching — confirmed in tests.",
+    "Default site_config includes the migration that rewrites the old seal URL to the new 279fc9d7-... asset on startup (server.py:1276-1284) — verified live."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration4.py (NEW — 22 tests)"
+  ],
+  "success_rate": {"backend": "86% (19/22)", "frontend": "~85% — all read & navigation flows pass; guide inquiry submit blocked by backend bug"},
+  "seed_data_creation": "Re-seeded via /api/seed (14 spots, 6 partners, 4 guides). Created several TEST_-prefixed inquiries via tests (TEST_Guide_Inquiry_User attempt failed, TEST_Partner_Inquiry succeeded). One TEST_Admin_Guide was created+updated+deleted within a single test (round-trip cleaned). No leftover guides expected; partner inquiries remain (safe to ignore).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "After the backend fix to POST /api/inquiries (must branch on guide_id vs partner_id and return 400 when both missing), re-run `EXPO_PUBLIC_BACKEND_URL=$(grep EXPO_PUBLIC_BACKEND_URL /app/frontend/.env | cut -d= -f2) pytest /app/backend/tests/test_iteration4.py -v`. The three currently failing tests are: test_inquiry_with_guide_id_succeeds, test_inquiry_without_partner_or_guide, test_admin_inquiries_includes_both_types. Mobile viewport for UI testing is 390x844. Use router-navigated paths (click goto-* buttons) rather than direct page.goto on /admin/* routes — expo SSR sometimes returns Unmatched Route on cold direct navigation.",
+  "rca_of_issue": "Bug RCA — Guide inquiry 404: server.py:1224 unconditionally executes `partner = await db.partners.find_one({'id': payload.partner_id}, ...)` and raises 404 when not found, regardless of whether guide_id was supplied. The Inquiry model and frontend correctly pass guide_id, but the handler was not refactored for iteration 4. Reproduction: `curl -X POST $EXPO_PUBLIC_BACKEND_URL/api/inquiries -H 'Content-Type: application/json' -d '{\"guide_id\":\"<valid_guide_uuid>\",\"name\":\"x\",\"email\":\"x@x.com\",\"message\":\"x\"}'` → 404 'Partner not found'. Fix: replace the unconditional partner lookup with conditional logic: if partner_id provided, lookup partner; elif guide_id provided, lookup guide; else raise 400."
+}

@@ -16,24 +16,26 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { getCurrentCoords } from "@/src/geo";
-
-const SERVICES = [
-  { name: "SAMU", number: "192", icon: "medkit", color: "#EF4444", description: "Emergências médicas" },
-  { name: "Bombeiros", number: "193", icon: "flame", color: "#F59E0B", description: "Resgate e incêndio" },
-  { name: "Polícia Militar", number: "190", icon: "shield", color: "#3B82F6", description: "Segurança pública" },
-  { name: "Defesa Civil", number: "199", icon: "warning", color: "#A78BFA", description: "Desastres naturais" },
-  { name: "Disque Denúncia", number: "181", icon: "ear", color: "#10B981", description: "Crimes anônimos" },
-];
+import { useSiteConfig } from "@/src/site-config";
 
 export default function Emergency() {
+  const { config } = useSiteConfig();
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  const SERVICES = [
+    { name: "SAMU", number: config.emergency_ambulance || "192", icon: "medkit", color: "#EF4444", description: "Emergências médicas" },
+    { name: "Bombeiros", number: config.emergency_fire || "193", icon: "flame", color: "#F59E0B", description: "Resgate e incêndio" },
+    { name: "Polícia Militar", number: config.emergency_police || "190", icon: "shield", color: "#3B82F6", description: "Segurança pública" },
+    { name: "Turismo / DELETUR", number: config.emergency_tourist || "(84) 3232-2000", icon: "information-circle", color: "#A78BFA", description: "Atendimento ao turista" },
+    { name: "Defesa Civil", number: "199", icon: "warning", color: "#10B981", description: "Desastres naturais" },
+  ];
 
   useEffect(() => {
     getCurrentCoords().then(setCoords);
   }, []);
 
-  const call = (svc: typeof SERVICES[number]) => {
-    const cb = () => Linking.openURL(`tel:${svc.number}`);
+  const call = (svc: { name: string; number: string }) => {
+    const cb = () => Linking.openURL(`tel:${svc.number.replace(/[^0-9+]/g, "")}`);
     if (Platform.OS === "web") {
       if (window.confirm(`Ligar para ${svc.name} (${svc.number})?`)) cb();
       return;

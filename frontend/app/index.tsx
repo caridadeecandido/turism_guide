@@ -192,9 +192,10 @@ export default function Home() {
         {/* Main shortcuts */}
         <View style={styles.mainShortcuts}>
           <Shortcut icon="map" label={t(language, "map")} color="#3B82F6" onPress={() => router.push("/map")} testID="goto-map" />
+          <Shortcut icon="people" label={language === "en" ? "Guides" : language === "es" ? "Guías" : "Guias"} color="#F59E0B" onPress={() => router.push("/guides")} testID="goto-guides" />
           <Shortcut icon="storefront" label={t(language, "marketplace")} color={colors.brand} onPress={() => router.push("/marketplace")} testID="goto-marketplace" />
-          <Shortcut icon="warning" label={t(language, "emergency")} color={colors.error} onPress={() => router.push("/emergency")} testID="goto-emergency" />
           <Shortcut icon="navigate" label={t(language, "near_me")} color={colors.success} onPress={() => router.push("/near")} testID="goto-near" />
+          <Shortcut icon="warning" label={t(language, "emergency")} color={colors.error} onPress={() => router.push("/emergency")} testID="goto-emergency" />
         </View>
 
         {/* Quick Access */}
@@ -373,11 +374,13 @@ const styles = StyleSheet.create({
   },
   bannerTitle: { color: colors.text, fontWeight: "700", fontSize: fontSizes.body },
   bannerText: { color: colors.textSecondary, fontSize: fontSizes.small, marginTop: 2 },
-  mainShortcuts: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
+  mainShortcuts: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md, flexWrap: "wrap" },
   shortcut: {
-    flex: 1, alignItems: "center", gap: 6,
+    flexBasis: "18%", flexGrow: 1, minWidth: 65,
+    alignItems: "center", gap: 6,
     backgroundColor: colors.surface,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 4,
     borderRadius: radii.card,
     borderWidth: 1, borderColor: colors.border,
   },

@@ -113,11 +113,13 @@ export default function AudioExperience() {
     setProgress(0);
     setPlaying(true);
     setPaused(false);
-    const seconds = Math.max(15, Math.round(spot.audio_description.length / (14 * rate)));
+    const textToSpeak = audioText || spot.audio_description;
+    const locale = ttsLocale(language);
+    const seconds = Math.max(15, Math.round(textToSpeak.length / (14 * rate)));
     setEstimated(seconds);
     startTick(seconds);
-    Speech.speak(spot.audio_description, {
-      language: "pt-BR",
+    Speech.speak(textToSpeak, {
+      language: locale,
       pitch: 1.0,
       rate,
       onDone: () => {
