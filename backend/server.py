@@ -1221,13 +1221,23 @@ async def verify_seal(code: str):
 
 @api_router.post("/inquiries", response_model=Inquiry)
 async def create_inquiry(payload: InquiryCreate, authorization: Optional[str] = Header(None)):
-    partner = await db.partners.find_one({"id": payload.partner_id}, {"_id": 0})
-    if not partner:
-        raise HTTPException(404, "Partner not found")
+    if not payload.partner_id and not payload.guide_id:
+        raise HTTPException(400, "partner_id or guide_id is required")
+    target_name = ""
+    if payload.partner_id:
+        partner = await db.partners.find_one({"id": payload.partner_id}, {"_id": 0})
+        if not partner:
+            raise HTTPException(404, "Partner not found")
+        target_name = f"partner {partner['name']}"
+    if payload.guide_id:
+        guide = await db.guides.find_one({"id": payload.guide_id}, {"_id": 0})
+        if not guide:
+            raise HTTPException(404, "Guide not found")
+        target_name = f"guide {guide['name']}"
     user = await get_current_user(authorization)
     inq = Inquiry(**payload.dict(), user_id=(user["user_id"] if user else None))
     await db.inquiries.insert_one(inq.dict())
-    logger.info("Inquiry %s for partner %s from %s", inq.id, partner["name"], inq.email)
+    logger.info("Inquiry %s for %s from %s", inq.id, target_name, inq.email)
     return inq
 
 
