@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   bannerText: { color: colors.textSecondary, fontSize: fontSizes.small, marginTop: 2 },
   mainShortcuts: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md, flexWrap: "wrap" },
   shortcut: {
-    flexBasis: "18%", flexGrow: 1, minWidth: 65,
+    flexBasis: "31%", flexGrow: 1, minWidth: 90,
     alignItems: "center", gap: 6,
     backgroundColor: colors.surface,
     paddingVertical: spacing.sm,
