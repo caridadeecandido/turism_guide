@@ -42,11 +42,11 @@ export default function Inquiries() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Solicitações de reserva</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={load} testID="refresh-button">
+        <Text accessibilityRole="header" style={styles.title}>Solicitações de reserva</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={load} accessibilityRole="button" accessibilityLabel="Atualizar lista de solicitações" testID="refresh-button">
           <Ionicons name="refresh" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -89,12 +89,12 @@ export default function Inquiries() {
                 </View>
               )}
               <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`mailto:${it.email}`)}>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`mailto:${it.email}`)} accessibilityRole="button" accessibilityLabel={`Enviar e-mail para ${it.name}, ${it.email}`}>
                   <Ionicons name="mail" size={16} color={colors.brand} />
                   <Text style={styles.actionText}>{it.email}</Text>
                 </TouchableOpacity>
                 {it.phone && (
-                  <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${it.phone}`)}>
+                  <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${it.phone}`)} accessibilityRole="button" accessibilityLabel={`Ligar para ${it.name}, ${it.phone}`}>
                     <Ionicons name="call" size={16} color={colors.brand} />
                     <Text style={styles.actionText}>{it.phone}</Text>
                   </TouchableOpacity>

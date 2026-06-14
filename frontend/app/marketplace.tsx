@@ -14,6 +14,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 
 const CATEGORIES = ["Todos", "Hospedagem", "Alimentação", "Passeio"];
 
@@ -38,17 +39,17 @@ export default function Marketplace() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Parceiros Acessíveis</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} testID="open-seal-button">
+        <Text accessibilityRole="header" style={styles.title}>Parceiros Acessíveis</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>Hotéis · Restaurantes · Passeios</Text>
+        <Text accessibilityRole="header" style={styles.heroTitle}>Hotéis · Restaurantes · Passeios</Text>
         <Text style={styles.heroSubtitle}>
           Estabelecimentos certificados pelo selo Turismo que se Sente.
         </Text>
@@ -67,6 +68,9 @@ export default function Marketplace() {
               key={c}
               onPress={() => setActive(c)}
               style={[styles.chip, isActive && styles.chipActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`Filtrar parceiros por categoria: ${c}`}
               testID={`filter-${c}`}
             >
               <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{c}</Text>
@@ -87,9 +91,15 @@ export default function Marketplace() {
               key={p.id}
               style={styles.card}
               onPress={() => router.push(`/partner/${p.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.name}, ${p.category}${p.has_seal ? ", parceiro certificado" : ""}. ${p.short_description}. ${p.price_from ? `A partir de ${p.price_from}. ` : ""}Toque para ver detalhes e reservar.`}
               testID={`partner-${p.id}`}
             >
-              <Image source={{ uri: p.image_url }} style={styles.image} />
+              <Image
+                source={{ uri: resolveAssetUrl(p.image_url) }}
+                style={styles.image}
+                accessibilityLabel={`Foto de ${p.name}`}
+              />
               <View style={styles.body}>
                 <View style={styles.row}>
                   <Text style={styles.cat}>{p.category.toUpperCase()}</Text>

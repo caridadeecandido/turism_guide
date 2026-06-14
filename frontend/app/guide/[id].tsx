@@ -18,6 +18,7 @@ import { router, useLocalSearchParams } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter } from "@/src/components/SealBranding";
@@ -147,7 +148,7 @@ export default function GuideDetail() {
     return (
       <View style={styles.center}>
         <Text style={{ color: colors.text }}>Guia não encontrado.</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backLink} accessibilityRole="button" accessibilityLabel="Voltar">
           <Text style={styles.backLinkText}>Voltar</Text>
         </TouchableOpacity>
       </View>
@@ -160,11 +161,11 @@ export default function GuideDetail() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Guia Certificado</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} testID="open-seal-button">
+        <Text accessibilityRole="header" style={styles.headerTitle} numberOfLines={1}>Guia Certificado</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -175,7 +176,7 @@ export default function GuideDetail() {
           <View style={styles.photoBig}>
             {guide.photo_url ? (
               <Image
-                source={{ uri: guide.photo_url }}
+                source={{ uri: resolveAssetUrl(guide.photo_url) }}
                 style={styles.photoBigImg}
                 accessibilityLabel={guide.photo_alt || `Foto de ${guide.name}`}
               />
@@ -195,7 +196,7 @@ export default function GuideDetail() {
               </View>
             )}
           </View>
-          <Text style={styles.name}>{guide.name}</Text>
+          <Text accessibilityRole="header" style={styles.name}>{guide.name}</Text>
           <View style={styles.row}>
             <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.region}>{guide.region}</Text>
@@ -272,7 +273,7 @@ export default function GuideDetail() {
               accessibilityLabel={config.seal_alt}
             />
             <View style={{ flex: 1 }}>
-              <Text style={styles.certTitle}>Certificação Categoria Ouro</Text>
+              <Text accessibilityRole="header" style={styles.certTitle}>Certificação Categoria Ouro</Text>
               <Text style={styles.certCourse}>{guide.certification_course}</Text>
               {!!guide.certification_date && (
                 <Text style={styles.certDate}>
@@ -330,6 +331,8 @@ export default function GuideDetail() {
         <TouchableOpacity
           style={styles.cta}
           onPress={() => setShowInquiry((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={showInquiry ? "Cancelar solicitação de contato" : `Solicitar contato com ${guide.name}`}
           testID="open-inquiry-btn"
         >
           <Ionicons name="chatbubbles" size={20} color="#fff" />
@@ -340,7 +343,7 @@ export default function GuideDetail() {
 
         {showInquiry && (
           <View style={styles.form}>
-            <Text style={styles.formTitle}>Enviar solicitação</Text>
+            <Text accessibilityRole="header" style={styles.formTitle}>Enviar solicitação</Text>
             <Field label="Seu nome*" value={name} onChange={setName} testID="inq-name" />
             <Field label="E-mail*" value={email} onChange={setEmail} keyboardType="email-address" testID="inq-email" />
             <Field label="Telefone (opcional)" value={phone} onChange={setPhone} keyboardType="phone-pad" testID="inq-phone" />
@@ -356,6 +359,8 @@ export default function GuideDetail() {
               style={[styles.submit, submitting && { opacity: 0.6 }]}
               onPress={submitInquiry}
               disabled={submitting}
+              accessibilityRole="button"
+              accessibilityLabel="Enviar solicitação de contato"
               testID="inq-submit"
             >
               {submitting ? (
@@ -381,7 +386,7 @@ function Section({ title, icon, children }: { title: string; icon: any; children
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Ionicons name={icon} size={18} color={colors.brand} />
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>
       </View>
       {children}
     </View>
@@ -406,6 +411,7 @@ function Field({
         numberOfLines={numberOfLines}
         keyboardType={keyboardType}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
         testID={testID}
       />
     </View>

@@ -98,11 +98,11 @@ export default function About() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{L.title}</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} testID="open-seal-button">
+        <Text accessibilityRole="header" style={styles.headerTitle}>{L.title}</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -123,7 +123,7 @@ export default function About() {
                 resizeMode="contain"
                 accessibilityLabel={config.seal_alt}
               />
-              <Text style={styles.heroTitle}>{config.app_name}</Text>
+              <Text accessibilityRole="header" style={styles.heroTitle}>{config.app_name}</Text>
               <Text style={styles.heroSub}>{config.header_banner_subtitle}</Text>
             </View>
           </View>
@@ -134,7 +134,7 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="information-circle" size={20} color={colors.brand} />
-              <Text style={styles.sectionTitle}>{L.aboutTitle}</Text>
+              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.aboutTitle}</Text>
             </View>
             <Text style={styles.bodyText}>{aboutText}</Text>
           </View>
@@ -147,7 +147,7 @@ export default function About() {
               <View style={[styles.miniCard, { borderLeftColor: colors.brand }]}>
                 <View style={styles.miniHeader}>
                   <Ionicons name="flag" size={18} color={colors.brand} />
-                  <Text style={styles.miniTitle}>{L.mission}</Text>
+                  <Text accessibilityRole="header" style={styles.miniTitle}>{L.mission}</Text>
                 </View>
                 <Text style={styles.miniBody}>{missionText}</Text>
               </View>
@@ -156,7 +156,7 @@ export default function About() {
               <View style={[styles.miniCard, { borderLeftColor: "#F59E0B" }]}>
                 <View style={styles.miniHeader}>
                   <Ionicons name="eye" size={18} color="#F59E0B" />
-                  <Text style={styles.miniTitle}>{L.vision}</Text>
+                  <Text accessibilityRole="header" style={styles.miniTitle}>{L.vision}</Text>
                 </View>
                 <Text style={styles.miniBody}>{visionText}</Text>
               </View>
@@ -168,7 +168,7 @@ export default function About() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialCommunityIcons name="hand-heart" size={20} color={colors.brand} />
-            <Text style={styles.sectionTitle}>{L.pillars}</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>{L.pillars}</Text>
           </View>
           <View style={styles.pillarsGrid}>
             {L.pillarsList.map((p) => (
@@ -187,7 +187,7 @@ export default function About() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="call" size={20} color={colors.brand} />
-            <Text style={styles.sectionTitle}>{L.contact}</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>{L.contact}</Text>
           </View>
 
           {!!config.contact_email && (
@@ -234,7 +234,7 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="share-social" size={20} color={colors.brand} />
-              <Text style={styles.sectionTitle}>{L.follow}</Text>
+              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.follow}</Text>
             </View>
             <View style={styles.socialGrid}>
               {!!config.instagram && (
@@ -296,7 +296,7 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="school" size={20} color={colors.brand} />
-              <Text style={styles.sectionTitle}>{L.promoters}</Text>
+              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.promoters}</Text>
             </View>
             <View style={styles.promotersRow}>
               {config.promoter_names.map((name, i) => (

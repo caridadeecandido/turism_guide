@@ -36,7 +36,9 @@ export function AccessibilityPanel() {
       <TouchableOpacity
         style={styles.fab}
         onPress={togglePanel}
-        accessibilityLabel="Painel de acessibilidade"
+        accessibilityRole="button"
+        accessibilityState={{ expanded: prefs.panelOpen }}
+        accessibilityLabel={prefs.panelOpen ? "Fechar painel de acessibilidade" : "Abrir painel de acessibilidade"}
         testID="a11y-fab"
       >
         <Ionicons name="accessibility" size={26} color="#fff" />
@@ -46,8 +48,8 @@ export function AccessibilityPanel() {
         <Animated.View style={[styles.panel, { opacity: anim }]} testID="a11y-panel">
           <View style={styles.panelHeader}>
             <Ionicons name="accessibility" size={20} color={colors.brand} />
-            <Text style={styles.panelTitle}>Acessibilidade</Text>
-            <TouchableOpacity onPress={togglePanel} testID="a11y-close">
+            <Text accessibilityRole="header" style={styles.panelTitle}>Acessibilidade</Text>
+            <TouchableOpacity onPress={togglePanel} accessibilityRole="button" accessibilityLabel="Fechar painel de acessibilidade" testID="a11y-close">
               <Ionicons name="close" size={22} color={colors.text} />
             </TouchableOpacity>
           </View>
@@ -116,6 +118,8 @@ function Toggle({ label, hint, icon, value, onChange, testID }: {
         onValueChange={onChange}
         trackColor={{ false: colors.surfaceElevated, true: colors.brand }}
         thumbColor="#fff"
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         testID={testID}
       />
     </View>

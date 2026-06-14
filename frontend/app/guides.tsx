@@ -14,6 +14,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter } from "@/src/components/SealBranding";
 
@@ -60,11 +61,11 @@ export default function GuidesList() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Guias Certificados</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} testID="open-seal-button">
+        <Text accessibilityRole="header" style={styles.title}>Guias Certificados</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -79,7 +80,7 @@ export default function GuidesList() {
               accessibilityLabel={config.seal_alt}
             />
           </View>
-          <Text style={styles.heroTitle}>Guias com Selo Categoria Ouro</Text>
+          <Text accessibilityRole="header" style={styles.heroTitle}>Guias com Selo Categoria Ouro</Text>
           <Text style={styles.heroSub}>
             Profissionais capacitados no Curso Turismo que se Sente (120h) — especialistas em audiodescrição, Libras, atendimento a PCD e neurodivergentes.
           </Text>
@@ -96,6 +97,9 @@ export default function GuidesList() {
               key={s}
               onPress={() => setActiveSpec(s)}
               style={[styles.chip, activeSpec === s && styles.chipActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: activeSpec === s }}
+              accessibilityLabel={`Filtrar guias por especialidade: ${s}`}
               testID={`spec-${s}`}
             >
               <Text style={[styles.chipText, activeSpec === s && styles.chipTextActive]}>{s}</Text>
@@ -112,6 +116,9 @@ export default function GuidesList() {
           <TouchableOpacity
             onPress={() => setActiveFocus(null)}
             style={[styles.chipSm, !activeFocus && styles.chipActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !activeFocus }}
+            accessibilityLabel="Mostrar guias de todas as acessibilidades"
             testID="focus-all"
           >
             <Ionicons name="accessibility" size={12} color={!activeFocus ? "#fff" : colors.brand} />
@@ -122,6 +129,9 @@ export default function GuidesList() {
               key={f}
               onPress={() => setActiveFocus(f === activeFocus ? null : f)}
               style={[styles.chipSm, activeFocus === f && styles.chipActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: activeFocus === f }}
+              accessibilityLabel={`Filtrar guias por acessibilidade: ${f}`}
               testID={`focus-${f}`}
             >
               <Text style={[styles.chipSmText, activeFocus === f && styles.chipTextActive]}>{f}</Text>
@@ -159,7 +169,7 @@ function GuideCard({ guide }: { guide: Guide }) {
       <View style={styles.photoWrap}>
         {guide.photo_url ? (
           <Image
-            source={{ uri: guide.photo_url }}
+            source={{ uri: resolveAssetUrl(guide.photo_url) }}
             style={styles.photo}
             accessibilityLabel={guide.photo_alt || `Foto de ${guide.name}`}
           />

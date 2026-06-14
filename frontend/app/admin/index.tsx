@@ -9,6 +9,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { TouristSpot } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAdminAuth } from "@/src/admin-auth";
 
 const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -100,18 +101,18 @@ export default function AdminHome() {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} testID="cancel-edit-button">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} accessibilityRole="button" accessibilityLabel="Cancelar edição" testID="cancel-edit-button">
             <Ionicons name="close" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>{editing.id ? "Editar ponto" : "Novo ponto"}</Text>
-          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} testID="save-button">
+          <Text accessibilityRole="header" style={styles.title}>{editing.id ? "Editar ponto" : "Novo ponto"}</Text>
+          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} accessibilityRole="button" accessibilityLabel="Salvar ponto turístico" testID="save-button">
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Salvar</Text>}
           </TouchableOpacity>
         </View>
 
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-            {editing.image_url ? <Image source={{ uri: editing.image_url }} style={styles.preview} /> : null}
+            {editing.image_url ? <Image source={{ uri: resolveAssetUrl(editing.image_url) }} style={styles.preview} accessibilityLabel={editing.image_alt || `Pré-visualização da imagem de ${editing.name || "ponto turístico"}`} /> : null}
 
             <Field label="Nome *" value={editing.name} onChange={(v) => setEditing({ ...editing, name: v })} testID="field-name" />
             <Field label="Categoria *" value={editing.category} onChange={(v) => setEditing({ ...editing, category: v })} testID="field-category" hint="Praia, História e Cultura, Parque, Hotel, Cafeteria, Mirante..." />
@@ -131,6 +132,9 @@ export default function AdminHome() {
             <TouchableOpacity
               style={styles.featuredRow}
               onPress={() => setEditing({ ...editing, featured: !editing.featured })}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: editing.featured }}
+              accessibilityLabel="Destacar na home"
               testID="toggle-featured"
             >
               <Ionicons name={editing.featured ? "checkbox" : "square-outline"} size={24} color={colors.brand} />
@@ -147,11 +151,11 @@ export default function AdminHome() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/")} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/")} accessibilityRole="button" accessibilityLabel="Ir para o início do app" testID="back-button">
           <Ionicons name="home-outline" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Admin</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} testID="new-spot-button">
+        <Text accessibilityRole="header" style={styles.title}>Admin</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} accessibilityRole="button" accessibilityLabel="Adicionar novo ponto turístico" testID="new-spot-button">
           <Ionicons name="add" size={28} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -164,7 +168,7 @@ export default function AdminHome() {
           <Text style={styles.adminName}>{admin?.name}</Text>
           <Text style={styles.adminEmail}>{admin?.email}</Text>
         </View>
-        <TouchableOpacity onPress={signOut} style={styles.logoutBtn} testID="admin-logout-button">
+        <TouchableOpacity onPress={signOut} style={styles.logoutBtn} accessibilityRole="button" accessibilityLabel="Sair do painel administrativo" testID="admin-logout-button">
           <Ionicons name="log-out-outline" size={18} color={colors.error} />
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
@@ -189,16 +193,16 @@ export default function AdminHome() {
         <ScrollView contentContainerStyle={styles.list}>
           {spots.map((spot) => (
             <View key={spot.id} style={styles.spotCard}>
-              <Image source={{ uri: spot.image_url }} style={styles.spotImage} />
+              <Image source={{ uri: resolveAssetUrl(spot.image_url) }} style={styles.spotImage} accessibilityLabel={spot.image_alt || `Foto de ${spot.name}`} />
               <View style={{ flex: 1, padding: spacing.sm }}>
                 <Text style={styles.spotName} numberOfLines={1}>{spot.name}</Text>
                 <Text style={styles.spotCat}>{spot.category} · {spot.neighborhood}</Text>
                 <View style={styles.actions}>
-                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(spot)} testID={`edit-${spot.id}`}>
+                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(spot)} accessibilityRole="button" accessibilityLabel={`Editar ${spot.name}`} testID={`edit-${spot.id}`}>
                     <Ionicons name="create-outline" size={14} color={colors.brand} />
                     <Text style={styles.editText}>Editar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(spot)} testID={`delete-${spot.id}`}>
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(spot)} accessibilityRole="button" accessibilityLabel={`Excluir ${spot.name}`} testID={`delete-${spot.id}`}>
                     <Ionicons name="trash-outline" size={14} color={colors.error} />
                     <Text style={styles.deleteText}>Excluir</Text>
                   </TouchableOpacity>
@@ -217,7 +221,7 @@ function QuickAction({ icon, label, onPress, testID }: {
   icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; testID: string;
 }) {
   return (
-    <TouchableOpacity style={styles.qa} onPress={onPress} testID={testID}>
+    <TouchableOpacity style={styles.qa} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} testID={testID}>
       <Ionicons name={icon} size={22} color={colors.brand} />
       <Text style={styles.qaLabel}>{label}</Text>
     </TouchableOpacity>
@@ -238,6 +242,8 @@ function Field({ label, value, onChange, multiline, keyboardType, hint, testID }
         multiline={multiline}
         keyboardType={keyboardType || "default"}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         testID={testID}
       />
       {hint && <Text style={styles.hint}>{hint}</Text>}

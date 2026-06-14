@@ -96,10 +96,10 @@ export default function MapScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button" accessibilityLabel="Voltar">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button" accessibilityRole="button" accessibilityLabel="Voltar">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Mapa de Natal</Text>
+        <Text accessibilityRole="header" style={styles.title}>Mapa de Natal</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -110,6 +110,7 @@ export default function MapScreen() {
           {Platform.OS === "web" ? (
             <iframe
               srcDoc={html}
+              title="Mapa interativo de Natal com os pontos turísticos acessíveis"
               style={{ flex: 1, border: "none", width: "100%", height: "100%" } as any}
               testID="map-iframe"
             />
@@ -120,6 +121,7 @@ export default function MapScreen() {
               onMessage={onMessage}
               style={{ flex: 1, backgroundColor: colors.bg }}
               javaScriptEnabled
+              accessibilityLabel="Mapa interativo de Natal com os pontos turísticos acessíveis"
             />
           )}
         </View>

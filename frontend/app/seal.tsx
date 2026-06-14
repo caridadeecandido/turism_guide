@@ -44,10 +44,10 @@ export default function Seal() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Selo Digital</Text>
+        <Text accessibilityRole="header" style={styles.title}>Selo Digital</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -56,7 +56,7 @@ export default function Seal() {
           <View style={styles.sealRing}>
             <Ionicons name="ribbon" size={48} color={colors.brand} />
           </View>
-          <Text style={styles.sealName}>Turismo que se Sente</Text>
+          <Text accessibilityRole="header" style={styles.sealName}>Turismo que se Sente</Text>
           <Text style={styles.sealTag}>Certificação de Acessibilidade</Text>
         </View>
 
@@ -65,7 +65,7 @@ export default function Seal() {
         </Text>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Verificar selo de um parceiro</Text>
+          <Text accessibilityRole="header" style={styles.cardTitle}>Verificar selo de um parceiro</Text>
           <Text style={styles.cardHint}>
             Digite o código do selo do estabelecimento ou escaneie o QR code na fachada / cardápio.
           </Text>
@@ -76,12 +76,15 @@ export default function Seal() {
             placeholder="Ex.: A1B2C3D4E5"
             placeholderTextColor={colors.textMuted}
             autoCapitalize="characters"
+            accessibilityLabel="Código do selo do parceiro"
             testID="seal-code-input"
           />
           <TouchableOpacity
             style={styles.verifyBtn}
             onPress={verify}
             disabled={loading || !code.trim()}
+            accessibilityRole="button"
+            accessibilityLabel="Verificar selo do parceiro"
             testID="verify-button"
           >
             {loading ? (
@@ -117,6 +120,8 @@ export default function Seal() {
               <TouchableOpacity
                 style={styles.viewPartnerBtn}
                 onPress={() => router.replace(`/partner/${result.partner.id}`)}
+                accessibilityRole="button"
+                accessibilityLabel={`Ver detalhes do parceiro ${result.partner.name}`}
                 testID="view-partner-button"
               >
                 <Text style={styles.viewPartnerText}>Ver detalhes do parceiro →</Text>
@@ -126,7 +131,7 @@ export default function Seal() {
         )}
 
         <View style={styles.criteria}>
-          <Text style={styles.criteriaTitle}>Critérios da certificação</Text>
+          <Text accessibilityRole="header" style={styles.criteriaTitle}>Critérios da certificação</Text>
           {[
             "Equipe treinada em mediação sensorial e audiodescrição",
             "Materiais informativos em braille e/ou audio",

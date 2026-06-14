@@ -85,11 +85,11 @@ export default function TranslationsAdmin() {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setSelected(null)} testID="back-list-button">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setSelected(null)} accessibilityRole="button" accessibilityLabel="Voltar para a lista de pontos" testID="back-list-button">
             <Ionicons name="chevron-back" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title} numberOfLines={1}>{selected.name}</Text>
-          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} testID="save-translation-button">
+          <Text accessibilityRole="header" style={styles.title} numberOfLines={1}>{selected.name}</Text>
+          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} accessibilityRole="button" accessibilityLabel="Salvar tradução" testID="save-translation-button">
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Salvar</Text>}
           </TouchableOpacity>
         </View>
@@ -100,6 +100,9 @@ export default function TranslationsAdmin() {
               key={l}
               style={[styles.langTab, lang === l && styles.langTabActive]}
               onPress={() => setLang(l)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: lang === l }}
+              accessibilityLabel={`Editar tradução em ${l === "en" ? "Inglês" : "Espanhol"}`}
               testID={`lang-tab-${l}`}
             >
               <Text style={[styles.langTabText, lang === l && styles.langTabTextActive]}>
@@ -113,6 +116,8 @@ export default function TranslationsAdmin() {
           style={styles.autoBtn}
           onPress={autoTranslate}
           disabled={autoTranslating}
+          accessibilityRole="button"
+          accessibilityLabel="Traduzir automaticamente com inteligência artificial"
           testID="auto-translate-button"
         >
           {autoTranslating ? <ActivityIndicator color={colors.brand} /> : (
@@ -139,10 +144,10 @@ export default function TranslationsAdmin() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Traduções</Text>
+        <Text accessibilityRole="header" style={styles.title}>Traduções</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -162,6 +167,8 @@ export default function TranslationsAdmin() {
                 key={spot.id}
                 style={styles.row}
                 onPress={() => setSelected(spot)}
+                accessibilityRole="button"
+                accessibilityLabel={`Editar traduções de ${spot.name}. ${hasEn ? "Inglês traduzido" : "Inglês pendente"}, ${hasEs ? "Espanhol traduzido" : "Espanhol pendente"}.`}
                 testID={`tr-${spot.id}`}
               >
                 <View style={{ flex: 1 }}>
@@ -199,6 +206,7 @@ function Field({ label, value, onChange, multiline, testID }: {
         onChangeText={onChange}
         multiline={multiline}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
         testID={testID}
       />
     </View>

@@ -14,12 +14,13 @@ export function SealHeader({ onPress }: { onPress?: () => void }) {
       onPress={onPress}
       activeOpacity={0.85}
       onFocus={() => speak(config.seal_alt)}
+      accessibilityRole="button"
       accessibilityLabel={config.seal_alt}
       testID="seal-header"
     >
       <Image source={{ uri: config.seal_image_url }} style={styles.img} accessibilityLabel={config.seal_alt} resizeMode="contain" />
       <View style={{ flex: 1 }}>
-        <Text style={styles.title} numberOfLines={1}>{config.header_banner_title}</Text>
+        <Text accessibilityRole="header" style={styles.title} numberOfLines={1}>{config.header_banner_title}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>{config.header_banner_subtitle}</Text>
       </View>
     </TouchableOpacity>

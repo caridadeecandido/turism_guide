@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { ttsLocale } from "@/src/i18n";
 
@@ -206,11 +207,12 @@ export default function AudioExperience() {
         >
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.topTitle}>Experiência de áudio</Text>
+        <Text accessibilityRole="header" style={styles.topTitle}>Experiência de áudio</Text>
         <TouchableOpacity
           style={styles.iconBtn}
           onPress={() => setShowText((v) => !v)}
-          accessibilityLabel="Mostrar texto"
+          accessibilityRole="button"
+          accessibilityLabel={showText ? "Mostrar imagem" : "Mostrar texto da audiodescrição"}
           testID="toggle-text-button"
         >
           <Ionicons name={showText ? "image-outline" : "document-text-outline"} size={22} color={colors.text} />
@@ -220,12 +222,16 @@ export default function AudioExperience() {
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.lg }} showsVerticalScrollIndicator={false}>
         {/* Album-style image */}
         <View style={styles.albumWrap}>
-          <Image source={{ uri: spot.image_url }} style={styles.albumImage} />
+          <Image
+            source={{ uri: resolveAssetUrl(spot.image_url) }}
+            style={styles.albumImage}
+            accessibilityLabel={spot.image_alt || `Foto de ${spotName || spot.name}`}
+          />
         </View>
 
         {/* Title */}
         <View style={styles.titleWrap}>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text accessibilityRole="header" style={styles.title} numberOfLines={2}>
             {spotName || spot.name}
           </Text>
           <View style={styles.locationRow}>
@@ -277,7 +283,8 @@ export default function AudioExperience() {
             <TouchableOpacity
               style={styles.playBtn}
               onPress={pause}
-              accessibilityLabel="Pausar"
+              accessibilityRole="button"
+              accessibilityLabel="Pausar audiodescrição"
               testID="pause-button"
             >
               <Ionicons name="pause" size={40} color="#fff" />
@@ -286,7 +293,8 @@ export default function AudioExperience() {
             <TouchableOpacity
               style={styles.playBtn}
               onPress={play}
-              accessibilityLabel={paused ? "Reiniciar" : "Reproduzir"}
+              accessibilityRole="button"
+              accessibilityLabel={`${paused ? "Reiniciar" : "Reproduzir"} audiodescrição de ${spotName || spot.name}`}
               testID="play-button"
             >
               <Ionicons name="play" size={40} color="#fff" style={{ marginLeft: 4 }} />
@@ -316,7 +324,7 @@ export default function AudioExperience() {
         <View style={styles.transcript}>
           <View style={styles.transcriptHeader}>
             <Ionicons name="document-text" size={18} color={colors.brand} />
-            <Text style={styles.transcriptTitle}>Audiodescrição</Text>
+            <Text accessibilityRole="header" style={styles.transcriptTitle}>Audiodescrição</Text>
           </View>
           <Text style={styles.transcriptText}>{audioText || spot.audio_description}</Text>
         </View>
@@ -325,6 +333,8 @@ export default function AudioExperience() {
         <TouchableOpacity
           style={styles.moreInfo}
           onPress={() => router.push(`/spot/${spot.id}`)}
+          accessibilityRole="button"
+          accessibilityLabel={`Mais informações sobre ${spotName || spot.name}`}
           testID="more-info-button"
         >
           <Ionicons name="information-circle-outline" size={20} color={colors.brandLight} />

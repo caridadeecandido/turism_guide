@@ -21,6 +21,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 
 export default function PartnerDetail() {
@@ -112,13 +113,17 @@ export default function PartnerDetail() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
-            <Image source={{ uri: partner.image_url }} style={styles.heroImage} />
+            <Image
+              source={{ uri: resolveAssetUrl(partner.image_url) }}
+              style={styles.heroImage}
+              accessibilityLabel={`Foto de ${partner.name}`}
+            />
             <LinearGradient
               colors={["rgba(11,17,32,0.6)", "transparent", "rgba(11,17,32,0.95)"]}
               style={StyleSheet.absoluteFillObject}
             />
             <SafeAreaView style={styles.heroTop} edges={["top"]}>
-              <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+              <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
                 <Ionicons name="chevron-back" size={26} color={colors.text} />
               </TouchableOpacity>
               {partner.has_seal && (
@@ -130,7 +135,7 @@ export default function PartnerDetail() {
             </SafeAreaView>
             <View style={styles.heroBottom}>
               <Text style={styles.heroCat}>{partner.category.toUpperCase()}</Text>
-              <Text style={styles.heroTitle}>{partner.name}</Text>
+              <Text accessibilityRole="header" style={styles.heroTitle}>{partner.name}</Text>
               <View style={styles.locationRow}>
                 <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
                 <Text style={styles.location}>{partner.neighborhood}, Natal – RN</Text>
@@ -148,12 +153,12 @@ export default function PartnerDetail() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sobre</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Sobre</Text>
             <Text style={styles.description}>{partner.short_description}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Acessibilidade</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Acessibilidade</Text>
             {partner.accessibility_features.map((f, idx) => (
               <View key={idx} style={styles.feat}>
                 <View style={styles.featIcon}>
@@ -165,9 +170,14 @@ export default function PartnerDetail() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Selo Digital de Certificação</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Selo Digital de Certificação</Text>
             <View style={styles.sealCard}>
-              <View style={styles.qrWrap}>
+              <View
+                style={styles.qrWrap}
+                accessible
+                accessibilityRole="image"
+                accessibilityLabel={`QR code do selo de certificação de ${partner.name}, código ${partner.seal_code}`}
+              >
                 <QRCode value={partner.seal_code} size={120} backgroundColor="#fff" color={colors.bg} />
               </View>
               <View style={{ flex: 1 }}>
@@ -176,7 +186,7 @@ export default function PartnerDetail() {
                 <Text style={styles.sealHint}>
                   Aponte a câmera para o QR code para verificar a certificação Turismo que se Sente.
                 </Text>
-                <TouchableOpacity onPress={() => router.push("/seal")} testID="verify-seal-button">
+                <TouchableOpacity onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Verificar selos de certificação" testID="verify-seal-button">
                   <Text style={styles.verifyLink}>Verificar selos →</Text>
                 </TouchableOpacity>
               </View>
@@ -184,21 +194,21 @@ export default function PartnerDetail() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contato</Text>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Contato</Text>
             <View style={styles.contactRow}>
               {partner.whatsapp && (
-                <TouchableOpacity style={[styles.contactBtn, { backgroundColor: "#25D366" }]} onPress={openWhatsapp} testID="whatsapp-button">
+                <TouchableOpacity style={[styles.contactBtn, { backgroundColor: "#25D366" }]} onPress={openWhatsapp} accessibilityRole="button" accessibilityLabel={`Conversar pelo WhatsApp com ${partner.name}`} testID="whatsapp-button">
                   <Ionicons name="logo-whatsapp" size={18} color="#fff" />
                   <Text style={styles.contactText}>WhatsApp</Text>
                 </TouchableOpacity>
               )}
               {partner.phone && (
-                <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`tel:${partner.phone}`)} testID="phone-button">
+                <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`tel:${partner.phone}`)} accessibilityRole="button" accessibilityLabel={`Ligar para ${partner.name}`} testID="phone-button">
                   <Ionicons name="call" size={18} color="#fff" />
                   <Text style={styles.contactText}>Ligar</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`mailto:${partner.email}`)} testID="email-button">
+              <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`mailto:${partner.email}`)} accessibilityRole="button" accessibilityLabel={`Enviar e-mail para ${partner.name}`} testID="email-button">
                 <Ionicons name="mail" size={18} color="#fff" />
                 <Text style={styles.contactText}>E-mail</Text>
               </TouchableOpacity>
@@ -207,7 +217,7 @@ export default function PartnerDetail() {
 
           {showForm ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Solicitar reserva / informações</Text>
+              <Text accessibilityRole="header" style={styles.sectionTitle}>Solicitar reserva / informações</Text>
               {success ? (
                 <View style={styles.successBox} testID="inquiry-success">
                   <Ionicons name="checkmark-circle" size={36} color={colors.success} />
@@ -215,7 +225,7 @@ export default function PartnerDetail() {
                   <Text style={styles.successText}>
                     O parceiro entrará em contato pelo e-mail informado. Você também recebeu uma cópia.
                   </Text>
-                  <TouchableOpacity onPress={() => { setSuccess(false); setShowForm(false); }} testID="close-success">
+                  <TouchableOpacity onPress={() => { setSuccess(false); setShowForm(false); }} accessibilityRole="button" accessibilityLabel="Fechar mensagem de sucesso" testID="close-success">
                     <Text style={styles.verifyLink}>Fechar</Text>
                   </TouchableOpacity>
                 </View>
@@ -233,6 +243,8 @@ export default function PartnerDetail() {
                     style={styles.submitBtn}
                     onPress={submit}
                     disabled={submitting}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Enviar solicitação de reserva para ${partner.name}`}
                     testID="submit-inquiry-button"
                   >
                     {submitting ? (
@@ -261,8 +273,9 @@ export default function PartnerDetail() {
           <TouchableOpacity
             style={styles.reserveBtn}
             onPress={() => setShowForm(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Reservar ${partner.name}`}
             testID="reserve-button"
-            accessibilityLabel="Reservar"
           >
             <Ionicons name="calendar" size={18} color="#fff" />
             <Text style={styles.reserveText}>Reservar</Text>
@@ -293,6 +306,7 @@ function Field({
         multiline={multiline}
         keyboardType={keyboardType || "default"}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
         testID={testID}
       />
     </View>
