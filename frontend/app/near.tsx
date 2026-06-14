@@ -14,6 +14,7 @@ import { router, useLocalSearchParams } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { getCurrentCoords, distanceKm, NATAL_CENTER, formatDistance } from "@/src/geo";
 
 export default function NearMe() {
@@ -66,10 +67,10 @@ export default function NearMe() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Perto de mim</Text>
+        <Text accessibilityRole="header" style={styles.headerTitle}>Perto de mim</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -93,6 +94,9 @@ export default function NearMe() {
               key={cat}
               onPress={() => setActiveCategory(cat)}
               style={[styles.filterChip, active && styles.filterChipActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`Filtrar por categoria: ${cat}`}
               testID={`filter-${cat}`}
             >
               <Text style={[styles.filterText, active && styles.filterTextActive]}>{cat}</Text>
@@ -113,9 +117,15 @@ export default function NearMe() {
               key={spot.id}
               style={styles.card}
               onPress={() => router.push(`/spot/${spot.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${formatDistance(spot._live_distance)}. Toque para ver detalhes e audiodescrição.`}
               testID={`spot-${spot.id}`}
             >
-              <Image source={{ uri: spot.image_url }} style={styles.cardImage} />
+              <Image
+                source={{ uri: resolveAssetUrl(spot.image_url) }}
+                style={styles.cardImage}
+                accessibilityLabel={spot.image_alt || `Foto de ${spot.name}`}
+              />
               <View style={styles.cardBody}>
                 <View style={styles.cardTopRow}>
                   <Text style={styles.cardTitle} numberOfLines={1}>
@@ -149,6 +159,8 @@ export default function NearMe() {
         style={styles.updateBtn}
         onPress={refreshLocation}
         disabled={locating}
+        accessibilityRole="button"
+        accessibilityLabel={coords ? "Atualizar minha localização" : "Ativar minha localização"}
         testID="refresh-button"
       >
         {locating ? (

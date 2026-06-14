@@ -38,10 +38,10 @@ export default function Menu() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Menu</Text>
+        <Text accessibilityRole="header" style={styles.headerTitle}>Menu</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -51,7 +51,7 @@ export default function Menu() {
           {user ? (
             <>
               {user.picture ? (
-                <Image source={{ uri: user.picture }} style={styles.avatar} />
+                <Image source={{ uri: user.picture }} style={styles.avatar} accessibilityLabel={`Foto de perfil de ${user.name}`} />
               ) : (
                 <View style={styles.avatarFallback}>
                   <Text style={styles.avatarText}>{user.name?.[0]?.toUpperCase() || "U"}</Text>
@@ -68,11 +68,13 @@ export default function Menu() {
             </>
           ) : (
             <>
-              <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" />
+              <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" accessibilityLabel="Logo Turismo que se Sente" />
               <Text style={styles.greeting}>Olá! Vamos explorar Natal juntos.</Text>
               <TouchableOpacity
                 style={styles.loginBtn}
                 onPress={() => router.push("/login")}
+                accessibilityRole="button"
+                accessibilityLabel="Entrar com a conta Google"
                 testID="goto-login-button"
               >
                 <Ionicons name="logo-google" size={18} color="#fff" />
@@ -90,6 +92,9 @@ export default function Menu() {
                 key={l}
                 style={[styles.langOption, language === l && styles.langOptionActive]}
                 onPress={() => setLanguage(l)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: language === l }}
+                accessibilityLabel={`Mudar idioma para ${l === "pt" ? "Português" : l === "en" ? "Inglês" : "Espanhol"}`}
                 testID={`menu-lang-${l}`}
               >
                 <Text style={[styles.langLabel, language === l && styles.langLabelActive]}>
@@ -175,7 +180,7 @@ export default function Menu() {
 
         {/* Logout */}
         {user && (
-          <TouchableOpacity style={styles.logoutBtn} onPress={confirmLogout} testID="logout-button">
+          <TouchableOpacity style={styles.logoutBtn} onPress={confirmLogout} accessibilityRole="button" accessibilityLabel="Sair da conta" testID="logout-button">
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
             <Text style={styles.logoutText}>Sair da conta</Text>
           </TouchableOpacity>
@@ -192,7 +197,7 @@ export default function Menu() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>
       {children}
     </View>
   );
@@ -210,6 +215,7 @@ function ToggleRow({ icon, label, value, onChange, testID }: {
         onValueChange={onChange}
         trackColor={{ false: colors.surfaceElevated, true: colors.brand }}
         thumbColor="#fff"
+        accessibilityLabel={label}
         testID={testID}
       />
     </View>
@@ -220,7 +226,7 @@ function LinkRow({ icon, label, onPress, iconColor, testID }: {
   icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; iconColor?: string; testID: string;
 }) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} testID={testID} accessibilityLabel={label}>
+    <TouchableOpacity style={styles.row} onPress={onPress} testID={testID} accessibilityRole="button" accessibilityLabel={label}>
       <View style={styles.iconWrap}><Ionicons name={icon} size={20} color={iconColor || colors.brand} /></View>
       <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />

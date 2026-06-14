@@ -2,11 +2,16 @@
 Turismo que se Sente - Backend API v3
 Full CMS with admin auth, site config, image upload, translations override.
 """
-from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import io
+import asyncio
+import base64
+import binascii
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
@@ -16,20 +21,67 @@ from datetime import datetime, timezone, timedelta
 import httpx
 import bcrypt
 import jwt as pyjwt
+import cloudinary
+import cloudinary.uploader
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Static files: the official brand assets live in backend/static/brand and are
+# served under /static. User uploads go to Cloudinary, not the local disk
+# (the Render free tier filesystem is ephemeral).
+STATIC_DIR = ROOT_DIR / "static"
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+
+# Official brand assets are versioned in backend/static/brand and served by the API.
+# Stored as relative paths so they stay host-agnostic; clients resolve them
+# against the backend base URL.
+BRAND_LOGO_URL = "/static/brand/logo.jpeg"
+BRAND_SEAL_URL = "/static/brand/selo.jpg"
+# Legacy Emergent-hosted URLs, kept only to migrate existing databases away from them.
+OLD_EMERGENT_LOGO = "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg"
+OLD_EMERGENT_SEAL = "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG"
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-JWT_SECRET = os.environ.get('JWT_SECRET', 'turismo-que-se-sente-secret-key-2026-change-in-prod')
+JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALG = "HS256"
 JWT_EXPIRE_MIN = 60 * 24  # 24h
 
-DEFAULT_ADMIN_EMAIL = "admin@turismoquesesente.com.br"
-DEFAULT_ADMIN_PASSWORD = "Natal@2026!"
+DEFAULT_ADMIN_EMAIL = os.environ['DEFAULT_ADMIN_EMAIL']
+DEFAULT_ADMIN_PASSWORD = os.environ['DEFAULT_ADMIN_PASSWORD']
+
+# ========== CLOUDINARY (image hosting) ==========
+# Credentials are read from the environment only — never hardcoded. Accept either
+# CLOUDINARY_URL (cloudinary://<api_key>:<api_secret>@<cloud_name>) or the individual
+# CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET variables.
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "")
+CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
+CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
+CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
+CLOUDINARY_UPLOAD_FOLDER = os.environ.get("CLOUDINARY_UPLOAD_FOLDER", "turismo-que-se-sente/uploads")
+
+if CLOUDINARY_URL:
+    # The SDK reads CLOUDINARY_URL from the environment automatically; force https URLs.
+    cloudinary.config(secure=True)
+elif CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )
+
+
+def cloudinary_configured() -> bool:
+    cfg = cloudinary.config()
+    return bool(
+        getattr(cfg, "cloud_name", None)
+        and getattr(cfg, "api_key", None)
+        and getattr(cfg, "api_secret", None)
+    )
 
 app = FastAPI(title="Turismo que se Sente API", version="3.0.0")
 api_router = APIRouter(prefix="/api")
@@ -396,10 +448,10 @@ class ImageUpload(BaseModel):
 DEFAULT_SITE_CONFIG = {
     "id": "default",
     "app_name": "Turismo que se Sente",
-    "app_logo_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
-    "app_icon_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
+    "app_logo_url": BRAND_LOGO_URL,
+    "app_icon_url": BRAND_LOGO_URL,
     "hero_image_url": "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=80",
-    "seal_image_url": "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG",
+    "seal_image_url": BRAND_SEAL_URL,
     "seal_alt": "Selo oficial Turismo que se Sente — Categoria Ouro. Medalha dourada com fundo roxo e ícones de cadeirante, cão-guia, audição assistida, Libras e Braille.",
     "header_banner_title": "Turismo que se Sente",
     "header_banner_subtitle": "Natal/RN acessível para todos",
@@ -1160,23 +1212,62 @@ async def admin_list_inquiries(_admin: dict = Depends(require_admin)):
 # ========== ROUTES: IMAGE UPLOAD (admin) ==========
 @api_router.post("/admin/upload-image")
 async def upload_image(payload: ImageUpload, _admin: dict = Depends(require_admin)):
-    """Store base64-encoded image. Returns a stable URL using a generated ID."""
-    if not payload.base64 or "base64," not in payload.base64:
-        # accept raw base64 too
-        b64 = payload.base64.strip()
+    """Decode a base64 image and upload it to Cloudinary, returning the secure_url."""
+    raw = (payload.base64 or "").strip()
+    if not raw:
+        raise HTTPException(400, "Imagem vazia")
+
+    # Accept both bare base64 and data URIs ("data:image/png;base64,....")
+    mime = "image/jpeg"
+    if raw.startswith("data:"):
+        header, _, b64data = raw.partition(",")
+        if not b64data:
+            raise HTTPException(400, "Data URI inválido")
+        if ";base64" in header:
+            mime = header[len("data:"):].split(";", 1)[0] or mime
     else:
-        b64 = payload.base64
+        b64data = raw
+
+    try:
+        binary = base64.b64decode(b64data, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(400, "Conteúdo base64 inválido")
+    if not binary:
+        raise HTTPException(400, "Imagem vazia")
+
+    if not cloudinary_configured():
+        raise HTTPException(503, "Serviço de imagens (Cloudinary) não configurado")
+
     img_id = str(uuid.uuid4())
-    doc = {
+    # Cloudinary's SDK is synchronous; run it off the event loop.
+    try:
+        result = await asyncio.to_thread(
+            cloudinary.uploader.upload,
+            io.BytesIO(binary),
+            resource_type="image",
+            folder=CLOUDINARY_UPLOAD_FOLDER,
+            public_id=img_id,
+            overwrite=True,
+        )
+    except Exception as e:
+        logger.error("Cloudinary upload failed: %s", e)
+        raise HTTPException(502, f"Falha ao enviar imagem para o Cloudinary: {e}")
+
+    secure_url = result.get("secure_url")
+    if not secure_url:
+        raise HTTPException(502, "Cloudinary não retornou uma URL segura")
+
+    # Keep lightweight metadata (no base64 blob) for record-keeping
+    await db.images.insert_one({
         "id": img_id,
-        "data": b64,
+        "image_url": secure_url,
+        "public_id": result.get("public_id"),
+        "mime": mime,
         "alt": payload.alt or "",
         "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.images.insert_one(doc)
-    # Return inline data URI when not already inline
-    image_url = b64 if b64.startswith("data:") else f"data:image/jpeg;base64,{b64}"
-    return {"id": img_id, "image_url": image_url, "alt": payload.alt}
+    })
+
+    return {"id": img_id, "image_url": secure_url, "alt": payload.alt}
 
 
 # ========== ROUTES: TOURIST AUTH ==========
@@ -1398,14 +1489,17 @@ async def startup_indexes_and_seed():
         logger.info("Seeded default site config")
     else:
         existing = await db.site_config.find_one({"id": "default"}) or {}
-        # Migrate: replace OLD seal URL with the new official seal automatically
-        OLD_SEAL_URLS = [
-            "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg",
-        ]
+        # Migrate: replace any old Emergent-hosted brand images (logo + seal)
+        # with the locally-served versions so we no longer depend on Emergent.
+        OLD_BRAND_URLS = {OLD_EMERGENT_LOGO, OLD_EMERGENT_SEAL}
         updates: dict = {}
-        if existing.get("seal_image_url") in OLD_SEAL_URLS:
+        if existing.get("seal_image_url") in OLD_BRAND_URLS:
             updates["seal_image_url"] = DEFAULT_SITE_CONFIG["seal_image_url"]
             updates["seal_alt"] = DEFAULT_SITE_CONFIG["seal_alt"]
+        if existing.get("app_logo_url") in OLD_BRAND_URLS:
+            updates["app_logo_url"] = DEFAULT_SITE_CONFIG["app_logo_url"]
+        if existing.get("app_icon_url") in OLD_BRAND_URLS:
+            updates["app_icon_url"] = DEFAULT_SITE_CONFIG["app_icon_url"]
         # Set defaults for fields that didn't exist before (only if missing)
         for new_key in ("app_name", "app_logo_url", "app_icon_url", "hero_image_url",
                         "about_pt", "about_en", "about_es",
@@ -1431,6 +1525,9 @@ async def startup_indexes_and_seed():
 
 
 app.include_router(api_router)
+
+# Serve uploaded images (and any other static asset) from backend/static
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 app.add_middleware(
     CORSMiddleware,

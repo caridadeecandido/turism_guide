@@ -6,20 +6,74 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { useAdminAuth } from "@/src/admin-auth";
 import { useSiteConfig } from "@/src/site-config";
+import { resolveAssetUrl } from "@/src/asset-url";
 
 const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function SiteCMS() {
   const { authHeader } = useAdminAuth();
-  const { config, refresh } = useSiteConfig();
-  const [form, setForm] = useState({ ...config });
+  // Bind the form to the RAW config (relative image paths) so saving never
+  // persists host-absolute URLs. Previews resolve paths only for display.
+  const { rawConfig, refresh } = useSiteConfig();
+  const [form, setForm] = useState({ ...rawConfig });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingSeal, setUploadingSeal] = useState(false);
 
-  useEffect(() => { setForm({ ...config }); }, [config]);
+  useEffect(() => { setForm({ ...rawConfig }); }, [rawConfig]);
+
+  // Pick an image and upload it via /admin/upload-image, which stores the file
+  // under static/uploads and returns a host-agnostic relative path. The seal
+  // field is then pointed at that file (persisted on Save).
+  const uploadSeal = async () => {
+    try {
+      if (Platform.OS !== "web") {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert("Permissão necessária", "Autorize o acesso à galeria para enviar a imagem do selo.");
+          return;
+        }
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.9,
+        base64: true,
+      });
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const mime = asset.mimeType || "image/jpeg";
+      // Native gives base64; web returns a data: URI in `uri`. Both are accepted
+      // by the backend (raw base64 or full data URI).
+      const payload = asset.base64 ? `data:${mime};base64,${asset.base64}` : asset.uri;
+      if (!payload) throw new Error("Não foi possível ler a imagem selecionada.");
+
+      setUploadingSeal(true);
+      const headers = { "Content-Type": "application/json", ...(await authHeader()) };
+      const r = await fetch(`${BASE}/api/admin/upload-image`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ base64: payload, alt: form.seal_alt || "" }),
+      });
+      if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+      const data = await r.json(); // { id, image_url: "/static/uploads/<id>.<ext>", alt }
+      update("seal_image_url", data.image_url);
+
+      const msg = "Imagem do selo enviada. Clique em Salvar para aplicar no app.";
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Upload concluído", msg);
+    } catch (e: any) {
+      const msg = `Falha ao enviar imagem: ${e.message || e}`;
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Erro", msg);
+    } finally {
+      setUploadingSeal(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -47,11 +101,11 @@ export default function SiteCMS() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Site & Selo</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} testID="save-site-button">
+        <Text accessibilityRole="header" style={styles.title}>Site & Selo</Text>
+        <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} accessibilityRole="button" accessibilityLabel="Salvar configurações do site" testID="save-site-button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Salvar</Text>}
         </TouchableOpacity>
       </View>
@@ -60,13 +114,30 @@ export default function SiteCMS() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Section title="Selo Turismo que se Sente">
             <View style={styles.sealPreview}>
-              <Image source={{ uri: form.seal_image_url }} style={styles.sealImg} resizeMode="contain" />
+              <Image source={{ uri: resolveAssetUrl(form.seal_image_url) }} style={styles.sealImg} resizeMode="contain" accessibilityLabel={form.seal_alt || "Pré-visualização do selo"} />
             </View>
+            <TouchableOpacity
+              style={styles.uploadBtn}
+              onPress={uploadSeal}
+              disabled={uploadingSeal}
+              testID="upload-seal-button"
+              accessibilityRole="button"
+              accessibilityLabel="Enviar nova imagem do selo a partir da galeria"
+            >
+              {uploadingSeal ? (
+                <ActivityIndicator color={colors.brand} />
+              ) : (
+                <>
+                  <Ionicons name="cloud-upload-outline" size={18} color={colors.brand} />
+                  <Text style={styles.uploadBtnText}>Enviar nova imagem do selo</Text>
+                </>
+              )}
+            </TouchableOpacity>
             <Field
               label="URL da imagem do selo *"
               value={form.seal_image_url}
               onChange={(v) => update("seal_image_url", v)}
-              hint="Cole a URL pública da imagem ou um data: URI em base64"
+              hint="Use o botão acima para enviar um arquivo (salvo em /static), ou cole uma URL pública / data: URI em base64."
               testID="field-seal-image"
             />
             <Field
@@ -87,12 +158,12 @@ export default function SiteCMS() {
             {form.app_logo_url ? (
               <View style={styles.previewRow}>
                 <View style={styles.previewBox}>
-                  <Image source={{ uri: form.app_logo_url }} style={styles.previewImg} resizeMode="contain" />
+                  <Image source={{ uri: resolveAssetUrl(form.app_logo_url) }} style={styles.previewImg} resizeMode="contain" accessibilityLabel="Pré-visualização do logo do app" />
                   <Text style={styles.previewLabel}>Logo</Text>
                 </View>
                 {form.hero_image_url ? (
                   <View style={styles.previewBox}>
-                    <Image source={{ uri: form.hero_image_url }} style={styles.previewImg} resizeMode="cover" />
+                    <Image source={{ uri: resolveAssetUrl(form.hero_image_url) }} style={styles.previewImg} resizeMode="cover" accessibilityLabel="Pré-visualização do banner hero" />
                     <Text style={styles.previewLabel}>Hero</Text>
                   </View>
                 ) : null}
@@ -229,7 +300,7 @@ export default function SiteCMS() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>
       {children}
     </View>
   );
@@ -244,6 +315,7 @@ function ToggleRow({ label, value, onChange, testID }: {
       onPress={() => onChange(!value)}
       testID={testID}
       accessibilityRole="switch"
+      accessibilityLabel={label}
       accessibilityState={{ checked: value }}
     >
       <Ionicons
@@ -269,6 +341,8 @@ function Field({ label, value, onChange, hint, multiline, testID }: {
         onChangeText={onChange}
         multiline={multiline}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         testID={testID}
       />
       {hint && <Text style={styles.hint}>{hint}</Text>}
@@ -300,6 +374,13 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: colors.border,
   },
   sealImg: { width: 160, height: 120 },
+  uploadBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    paddingVertical: 12, borderRadius: 12,
+    borderWidth: 1, borderColor: colors.brand, borderStyle: "dashed",
+    backgroundColor: colors.bg,
+  },
+  uploadBtnText: { color: colors.brand, fontWeight: "700", fontSize: fontSizes.small },
   field: { gap: 6 },
   fieldLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: "600" },
   input: {

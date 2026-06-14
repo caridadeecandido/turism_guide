@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { t } from "@/src/i18n";
 
@@ -85,19 +86,24 @@ export default function SpotDetail() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <Image source={{ uri: spot.image_url }} style={styles.heroImage} />
+          <Image
+            source={{ uri: resolveAssetUrl(spot.image_url) }}
+            style={styles.heroImage}
+            accessibilityLabel={spot.image_alt || `Foto de ${view.name}`}
+          />
           <LinearGradient
             colors={["rgba(11,17,32,0.7)", "transparent", "rgba(11,17,32,0.95)"]}
             style={StyleSheet.absoluteFillObject}
           />
           <SafeAreaView style={styles.heroTop} edges={["top"]}>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+            <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
               <Ionicons name="chevron-back" size={26} color={colors.text} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconBtn, fav && styles.iconBtnActive]}
               onPress={() => toggleFavorite(spot.id)}
-              accessibilityLabel={fav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              accessibilityRole="button"
+              accessibilityLabel={fav ? `Remover ${view.name} dos favoritos` : `Adicionar ${view.name} aos favoritos`}
               testID="favorite-button"
             >
               <Ionicons name={fav ? "heart" : "heart-outline"} size={24} color={fav ? colors.brand : colors.text} />
@@ -105,7 +111,7 @@ export default function SpotDetail() {
           </SafeAreaView>
           <View style={styles.heroBottom}>
             <Text style={styles.heroCategory}>{spot.category}</Text>
-            <Text style={styles.heroTitle} testID="spot-title">{view.name}</Text>
+            <Text accessibilityRole="header" style={styles.heroTitle} testID="spot-title">{view.name}</Text>
             <View style={styles.row}>
               <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
               <Text style={styles.heroLocation}>{spot.neighborhood}, Natal – RN</Text>
@@ -138,13 +144,15 @@ export default function SpotDetail() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t(language, "about")}</Text>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "about")}</Text>
           <Text style={styles.description}>{view.full_description}</Text>
         </View>
 
         <TouchableOpacity
           style={styles.audioCta}
           onPress={() => router.push(`/audio/${spot.id}`)}
+          accessibilityRole="button"
+          accessibilityLabel={`Ouvir audiodescrição sensorial de ${view.name}`}
           testID="listen-audio-button"
         >
           <View style={styles.audioCtaIcon}>
@@ -160,7 +168,7 @@ export default function SpotDetail() {
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t(language, "accessibility_info")}</Text>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "accessibility_info")}</Text>
           {spot.accessibility_features.map((f, idx) => (
             <View key={idx} style={styles.featureRow}>
               <View style={styles.featureIcon}>
@@ -172,7 +180,7 @@ export default function SpotDetail() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t(language, "address")}</Text>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "address")}</Text>
           <View style={styles.addressBox}>
             <Ionicons name="location" size={20} color={colors.brand} />
             <Text style={styles.addressText}>{spot.address}</Text>
@@ -181,6 +189,8 @@ export default function SpotDetail() {
             <TouchableOpacity
               style={styles.mapBtn}
               onPress={() => router.push("/map")}
+              accessibilityRole="button"
+              accessibilityLabel={`Ver ${view.name} no mapa`}
               testID="open-map-button"
             >
               <Ionicons name="map" size={18} color={colors.brand} />

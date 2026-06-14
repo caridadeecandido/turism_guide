@@ -20,6 +20,7 @@ export default function Login() {
         <TouchableOpacity
           style={styles.iconBtn}
           onPress={() => router.back()}
+          accessibilityRole="button"
           accessibilityLabel="Voltar"
           testID="back-button"
         >
@@ -28,8 +29,8 @@ export default function Login() {
       </View>
 
       <View style={styles.content}>
-        <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" />
-        <Text style={styles.title}>Turismo que se Sente</Text>
+        <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" accessibilityLabel="Logo Turismo que se Sente" />
+        <Text accessibilityRole="header" style={styles.title}>Turismo que se Sente</Text>
         <Text style={styles.subtitle}>
           Faça login para salvar seus favoritos, sincronizar entre dispositivos e fazer reservas em parceiros acessíveis.
         </Text>
@@ -53,7 +54,8 @@ export default function Login() {
           style={styles.googleBtn}
           onPress={signIn}
           disabled={loading}
-          accessibilityLabel="Entrar com Google"
+          accessibilityRole="button"
+          accessibilityLabel="Entrar com a conta Google"
           testID="google-signin-button"
         >
           {loading ? (
@@ -70,6 +72,7 @@ export default function Login() {
 
         <TouchableOpacity
           onPress={() => router.replace("/")}
+          accessibilityRole="button"
           accessibilityLabel="Continuar sem login"
           testID="skip-login-button"
         >

@@ -75,10 +75,10 @@ export default function Emergency() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Emergência</Text>
+        <Text accessibilityRole="header" style={styles.title}>Emergência</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -87,13 +87,13 @@ export default function Emergency() {
           <View style={styles.heroIcon}>
             <Ionicons name="warning" size={36} color={colors.error} />
           </View>
-          <Text style={styles.heroTitle}>Você está em segurança?</Text>
+          <Text accessibilityRole="header" style={styles.heroTitle}>Você está em segurança?</Text>
           <Text style={styles.heroSubtitle}>
             Toque para ligar diretamente para os serviços de emergência ou compartilhar sua localização.
           </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Serviços de emergência</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>Serviços de emergência</Text>
         {SERVICES.map((s) => (
           <TouchableOpacity
             key={s.number}
@@ -116,7 +116,7 @@ export default function Emergency() {
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Compartilhar localização</Text>
+        <Text accessibilityRole="header" style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Compartilhar localização</Text>
         <View style={styles.coordsBox}>
           <MaterialCommunityIcons name="map-marker-radius" size={18} color={colors.brand} />
           <Text style={styles.coordsText}>
@@ -127,6 +127,8 @@ export default function Emergency() {
           <TouchableOpacity
             style={[styles.shareBtn, { backgroundColor: "#25D366" }]}
             onPress={() => shareLocation("whatsapp")}
+            accessibilityRole="button"
+            accessibilityLabel="Compartilhar minha localização por WhatsApp"
             testID="share-whatsapp"
           >
             <Ionicons name="logo-whatsapp" size={22} color="#fff" />
@@ -135,6 +137,8 @@ export default function Emergency() {
           <TouchableOpacity
             style={[styles.shareBtn, { backgroundColor: "#3B82F6" }]}
             onPress={() => shareLocation("sms")}
+            accessibilityRole="button"
+            accessibilityLabel="Compartilhar minha localização por SMS"
             testID="share-sms"
           >
             <Ionicons name="chatbubble" size={22} color="#fff" />
@@ -143,6 +147,8 @@ export default function Emergency() {
           <TouchableOpacity
             style={[styles.shareBtn, { backgroundColor: colors.surfaceElevated }]}
             onPress={() => shareLocation("copy")}
+            accessibilityRole="button"
+            accessibilityLabel="Copiar minha localização"
             testID="share-copy"
           >
             <Ionicons name="copy-outline" size={22} color="#fff" />

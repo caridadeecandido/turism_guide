@@ -16,6 +16,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { t } from "@/src/i18n";
 import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
@@ -104,7 +105,12 @@ export default function Home() {
           >
             <Ionicons name="menu" size={28} color={colors.text} />
           </TouchableOpacity>
-          <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" />
+          <Image
+            source={{ uri: LOGO_URL }}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel={`Logo ${config.app_name || "Turismo que se Sente"}`}
+          />
           {user ? (
             <TouchableOpacity
               style={styles.avatarBtn}
@@ -113,7 +119,7 @@ export default function Home() {
               testID="profile-button"
             >
               {user.picture ? (
-                <Image source={{ uri: user.picture }} style={styles.avatar} />
+                <Image source={{ uri: user.picture }} style={styles.avatar} accessibilityLabel={`Foto de perfil de ${user.name}`} />
               ) : (
                 <View style={styles.avatarFallback}>
                   <Text style={styles.avatarText}>{user.name?.[0]?.toUpperCase() || "U"}</Text>
@@ -134,7 +140,7 @@ export default function Home() {
 
         {/* Welcome */}
         <View style={styles.welcome}>
-          <Text style={styles.welcomeTitle} testID="welcome-title">
+          <Text accessibilityRole="header" style={styles.welcomeTitle} testID="welcome-title">
             {(() => {
               const base = language === "en" ? config.welcome_en : language === "es" ? config.welcome_es : config.welcome_pt;
               return user ? base.replace("!", `, ${user.name.split(" ")[0]}!`) : base;
@@ -152,7 +158,9 @@ export default function Home() {
               key={l}
               onPress={() => setLanguage(l)}
               style={[styles.langChip, language === l && styles.langChipActive]}
-              accessibilityLabel={`Idioma ${l}`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: language === l }}
+              accessibilityLabel={`Mudar idioma para ${l === "pt" ? "Português" : l === "en" ? "Inglês" : "Espanhol"}`}
               testID={`lang-${l}`}
             >
               <Text style={[styles.langText, language === l && styles.langTextActive]}>
@@ -171,9 +179,10 @@ export default function Home() {
             onChangeText={setSearch}
             placeholder={t(language, "search_placeholder")}
             placeholderTextColor={colors.textMuted}
+            accessibilityLabel="Buscar pontos turísticos por nome ou bairro"
             testID="search-input"
           />
-          <TouchableOpacity testID="voice-button">
+          <TouchableOpacity testID="voice-button" accessibilityRole="button" accessibilityLabel="Buscar por voz">
             <Ionicons name="mic" size={22} color={colors.brand} />
           </TouchableOpacity>
         </View>
@@ -200,13 +209,15 @@ export default function Home() {
         </View>
 
         {/* Quick Access */}
-        <Text style={styles.sectionTitle}>{t(language, "quick_access")}</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "quick_access")}</Text>
         <View style={styles.quickGrid}>
           {QUICK_ACCESS.map((q, idx) => (
             <TouchableOpacity
               key={q.key}
               style={styles.quickCard}
               onPress={() => router.push(`/near?category=${encodeURIComponent(q.key)}` as any)}
+              accessibilityRole="button"
+              accessibilityLabel={`Ver atrativos da categoria ${labels ? labels[idx] : q.labelKey}`}
               testID={`quick-${q.key}`}
             >
               <View style={styles.quickIcon}>
@@ -219,8 +230,8 @@ export default function Home() {
 
         {/* Featured */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t(language, "featured")}</Text>
-          <TouchableOpacity onPress={() => router.push("/near")} testID="see-all-button">
+          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "featured")}</Text>
+          <TouchableOpacity onPress={() => router.push("/near")} testID="see-all-button" accessibilityRole="button" accessibilityLabel="Ver todos os atrativos em destaque">
             <Text style={styles.seeAll}>{t(language, "see_all")}</Text>
           </TouchableOpacity>
         </View>
@@ -241,7 +252,7 @@ export default function Home() {
         )}
 
         {/* All */}
-        <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>
+        <Text accessibilityRole="header" style={[styles.sectionTitle, { marginTop: spacing.lg }]}>
           {search ? `Resultados (${filtered.length})` : t(language, "all_spots")}
         </Text>
         {filtered.map((spot) => (
@@ -274,9 +285,15 @@ function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number 
     <TouchableOpacity
       style={styles.featuredCard}
       onPress={() => router.push(`/spot/${spot.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}. Atrativo em destaque. Toque para ver detalhes e audiodescrição.`}
       testID={`featured-${spot.id}`}
     >
-      <Image source={{ uri: spot.image_url }} style={styles.featuredImage} />
+      <Image
+        source={{ uri: resolveAssetUrl(spot.image_url) }}
+        style={styles.featuredImage}
+        accessibilityLabel={spot.image_alt || `Foto de ${spot.name}`}
+      />
       <View style={styles.featuredOverlay} />
       <View style={styles.featuredContent}>
         {spot.accessibility_badges[0] && (
@@ -301,9 +318,15 @@ function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number 
     <TouchableOpacity
       style={styles.listItem}
       onPress={() => router.push(`/spot/${spot.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${dist < 1 ? `${Math.round(dist * 1000)} metros` : `${dist.toFixed(1)} quilômetros`}. Toque para ver detalhes e audiodescrição.`}
       testID={`list-${spot.id}`}
     >
-      <Image source={{ uri: spot.image_url }} style={styles.listImage} />
+      <Image
+        source={{ uri: resolveAssetUrl(spot.image_url) }}
+        style={styles.listImage}
+        accessibilityLabel={spot.image_alt || `Foto de ${spot.name}`}
+      />
       <View style={styles.listContent}>
         <Text style={styles.listTitle} numberOfLines={1}>{spot.name}</Text>
         <Text style={styles.listCategory}>{spot.category}</Text>

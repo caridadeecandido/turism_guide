@@ -35,6 +35,7 @@ export type Partner = {
   accessibility_features: string[];
   badges: string[];
   image_url: string;
+  image_alt?: string;
   email: string;
   phone: string;
   whatsapp: string;

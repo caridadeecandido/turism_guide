@@ -33,15 +33,15 @@ export default function AdminLogin() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.top}>
-        <TouchableOpacity onPress={() => router.replace("/")} style={styles.back} testID="back-button">
+        <TouchableOpacity onPress={() => router.replace("/")} style={styles.back} accessibilityRole="button" accessibilityLabel="Voltar para o início" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" />
-          <Text style={styles.title}>Painel administrativo</Text>
+          <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" accessibilityLabel="Logo Turismo que se Sente" />
+          <Text accessibilityRole="header" style={styles.title}>Painel administrativo</Text>
           <Text style={styles.subtitle}>Acesso restrito ao administrador do sistema</Text>
 
           <View style={styles.field}>
@@ -56,6 +56,7 @@ export default function AdminLogin() {
                 autoCapitalize="none"
                 autoComplete="email"
                 placeholderTextColor={colors.textMuted}
+                accessibilityLabel="E-mail do administrador"
                 testID="admin-email-input"
               />
             </View>
@@ -71,9 +72,10 @@ export default function AdminLogin() {
                 onChangeText={setPassword}
                 secureTextEntry={!show}
                 placeholderTextColor={colors.textMuted}
+                accessibilityLabel="Senha do administrador"
                 testID="admin-password-input"
               />
-              <TouchableOpacity onPress={() => setShow((s) => !s)} testID="toggle-show-password">
+              <TouchableOpacity onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? "Ocultar senha" : "Mostrar senha"} testID="toggle-show-password">
                 <Ionicons name={show ? "eye-off" : "eye"} size={20} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
@@ -90,6 +92,8 @@ export default function AdminLogin() {
             style={styles.btn}
             onPress={submit}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Entrar como administrador"
             testID="admin-login-button"
           >
             {loading ? (

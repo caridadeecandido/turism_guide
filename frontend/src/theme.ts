@@ -45,5 +45,6 @@ export const fontSizes = {
   tiny: 12,
 } as const;
 
-export const LOGO_URL =
-  "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg";
+// Official logo is served by the backend from /static/brand (versioned in the repo).
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? "";
+export const LOGO_URL = `${BACKEND_URL}/static/brand/logo.jpeg`;

@@ -34,7 +34,13 @@
           "backgroundColor": "#000"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app acessa suas fotos para você enviar a imagem do selo e outras imagens do site."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

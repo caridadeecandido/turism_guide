@@ -9,6 +9,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { Partner } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAdminAuth } from "@/src/admin-auth";
 
 const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -83,18 +84,18 @@ export default function AdminPartners() {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} testID="cancel-edit-button">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} accessibilityRole="button" accessibilityLabel="Cancelar edição" testID="cancel-edit-button">
             <Ionicons name="close" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>{editing.id ? "Editar parceiro" : "Novo parceiro"}</Text>
-          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} testID="save-partner-button">
+          <Text accessibilityRole="header" style={styles.title}>{editing.id ? "Editar parceiro" : "Novo parceiro"}</Text>
+          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} accessibilityRole="button" accessibilityLabel="Salvar parceiro" testID="save-partner-button">
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Salvar</Text>}
           </TouchableOpacity>
         </View>
 
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-            {editing.image_url ? <Image source={{ uri: editing.image_url }} style={styles.preview} /> : null}
+            {editing.image_url ? <Image source={{ uri: resolveAssetUrl(editing.image_url) }} style={styles.preview} accessibilityLabel={editing.image_alt || `Pré-visualização da imagem de ${editing.name || "parceiro"}`} /> : null}
 
             <SectionTitle>Identidade</SectionTitle>
             <Field label="Nome *" value={editing.name || ""} onChange={(v) => set({ name: v })} testID="p-name" />
@@ -143,11 +144,11 @@ export default function AdminPartners() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Parceiros</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} testID="new-partner-button">
+        <Text accessibilityRole="header" style={styles.title}>Parceiros</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} accessibilityRole="button" accessibilityLabel="Adicionar novo parceiro" testID="new-partner-button">
           <Ionicons name="add" size={28} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -160,17 +161,17 @@ export default function AdminPartners() {
         <ScrollView contentContainerStyle={styles.list}>
           {items.map((p) => (
             <View key={p.id} style={styles.card}>
-              <Image source={{ uri: p.image_url }} style={styles.cardImg} />
+              <Image source={{ uri: resolveAssetUrl(p.image_url) }} style={styles.cardImg} accessibilityLabel={p.image_alt || `Foto de ${p.name}`} />
               <View style={{ flex: 1, padding: spacing.sm }}>
                 <Text style={styles.cardName} numberOfLines={1}>{p.name}</Text>
                 <Text style={styles.cardMeta}>{p.category} · {p.neighborhood}</Text>
                 <Text style={styles.code}>SEAL #{p.seal_code}</Text>
                 <View style={styles.actions}>
-                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(p)} testID={`edit-partner-${p.id}`}>
+                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(p)} accessibilityRole="button" accessibilityLabel={`Editar parceiro ${p.name}`} testID={`edit-partner-${p.id}`}>
                     <Ionicons name="create-outline" size={14} color={colors.brand} />
                     <Text style={styles.editText}>Editar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(p)} testID={`delete-partner-${p.id}`}>
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(p)} accessibilityRole="button" accessibilityLabel={`Excluir parceiro ${p.name}`} testID={`delete-partner-${p.id}`}>
                     <Ionicons name="trash-outline" size={14} color={colors.error} />
                     <Text style={styles.deleteText}>Excluir</Text>
                   </TouchableOpacity>
@@ -186,7 +187,7 @@ export default function AdminPartners() {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.section}>{children}</Text>;
+  return <Text accessibilityRole="header" style={styles.section}>{children}</Text>;
 }
 
 function Field({ label, value, onChange, multiline, keyboardType, hint, testID }: {
@@ -203,6 +204,8 @@ function Field({ label, value, onChange, multiline, keyboardType, hint, testID }
         multiline={multiline}
         keyboardType={keyboardType}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         testID={testID}
       />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}

@@ -9,6 +9,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { Guide } from "@/src/api";
+import { resolveAssetUrl } from "@/src/asset-url";
 import { useAdminAuth } from "@/src/admin-auth";
 import { useSiteConfig } from "@/src/site-config";
 
@@ -105,11 +106,11 @@ export default function AdminGuides() {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} testID="cancel-edit-button">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing(null)} accessibilityRole="button" accessibilityLabel="Cancelar edição" testID="cancel-edit-button">
             <Ionicons name="close" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>{editing.id ? "Editar guia" : "Novo guia"}</Text>
-          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} testID="save-guide-button">
+          <Text accessibilityRole="header" style={styles.title}>{editing.id ? "Editar guia" : "Novo guia"}</Text>
+          <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={saving} accessibilityRole="button" accessibilityLabel="Salvar guia" testID="save-guide-button">
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Salvar</Text>}
           </TouchableOpacity>
         </View>
@@ -117,7 +118,7 @@ export default function AdminGuides() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
             {editing.photo_url ? (
-              <Image source={{ uri: editing.photo_url }} style={styles.preview} />
+              <Image source={{ uri: resolveAssetUrl(editing.photo_url) }} style={styles.preview} accessibilityLabel={editing.photo_alt || `Pré-visualização da foto de ${editing.name || "guia"}`} />
             ) : (
               <View style={[styles.preview, styles.previewPlaceholder]}>
                 <Ionicons name="person" size={80} color={colors.textMuted} />
@@ -184,17 +185,17 @@ export default function AdminGuides() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} testID="back-button">
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Guias certificados</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} testID="new-guide-button">
+        <Text accessibilityRole="header" style={styles.title}>Guias certificados</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditing({ ...EMPTY })} accessibilityRole="button" accessibilityLabel="Adicionar novo guia" testID="new-guide-button">
           <Ionicons name="add" size={28} color={colors.brand} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.banner}>
-        <Image source={{ uri: config.seal_image_url }} style={styles.bannerSeal} resizeMode="contain" />
+        <Image source={{ uri: config.seal_image_url }} style={styles.bannerSeal} resizeMode="contain" accessibilityLabel={config.seal_alt} />
         <View style={{ flex: 1 }}>
           <Text style={styles.bannerTitle}>{guides.length} guias cadastrados</Text>
           <Text style={styles.bannerSub}>Cada guia recebe um código de selo único após capacitação.</Text>
@@ -214,7 +215,7 @@ export default function AdminGuides() {
           {guides.map((g) => (
             <View key={g.id} style={[styles.card, !g.active && { opacity: 0.5 }]}>
               {g.photo_url ? (
-                <Image source={{ uri: g.photo_url }} style={styles.photo} />
+                <Image source={{ uri: resolveAssetUrl(g.photo_url) }} style={styles.photo} accessibilityLabel={g.photo_alt || `Foto de ${g.name}`} />
               ) : (
                 <View style={[styles.photo, styles.photoPlaceholder]}>
                   <Ionicons name="person" size={32} color={colors.textMuted} />
@@ -239,11 +240,11 @@ export default function AdminGuides() {
                 <Text style={styles.code}>SEAL #{g.seal_code}</Text>
 
                 <View style={styles.actions}>
-                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(g)} testID={`edit-guide-${g.id}`}>
+                  <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(g)} accessibilityRole="button" accessibilityLabel={`Editar guia ${g.name}`} testID={`edit-guide-${g.id}`}>
                     <Ionicons name="create-outline" size={14} color={colors.brand} />
                     <Text style={styles.editText}>Editar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(g)} testID={`delete-guide-${g.id}`}>
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => remove(g)} accessibilityRole="button" accessibilityLabel={`Excluir guia ${g.name}`} testID={`delete-guide-${g.id}`}>
                     <Ionicons name="trash-outline" size={14} color={colors.error} />
                     <Text style={styles.deleteText}>Excluir</Text>
                   </TouchableOpacity>
@@ -259,7 +260,7 @@ export default function AdminGuides() {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.section}>{children}</Text>;
+  return <Text accessibilityRole="header" style={styles.section}>{children}</Text>;
 }
 
 function Field({ label, value, onChange, multiline, keyboardType, hint, testID }: {
@@ -276,6 +277,8 @@ function Field({ label, value, onChange, multiline, keyboardType, hint, testID }
         multiline={multiline}
         keyboardType={keyboardType}
         placeholderTextColor={colors.textMuted}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         testID={testID}
       />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
@@ -290,6 +293,7 @@ function ToggleRow({ label, value, onChange, testID }: {
     <View style={styles.toggleRow}>
       <Text style={styles.toggleLabel}>{label}</Text>
       <Switch value={value} onValueChange={onChange} testID={testID}
+        accessibilityLabel={label}
         trackColor={{ false: colors.surfaceElevated, true: colors.brand }}
         thumbColor="#fff" />
     </View>
