@@ -16,7 +16,7 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { useAuth } from "@/src/auth-context";
 import { useSiteConfig } from "@/src/site-config";
-import { SealFooter } from "@/src/components/SealBranding";
+import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 type Lang = "pt" | "en" | "es";
 
@@ -117,12 +117,7 @@ export default function About() {
               accessibilityLabel="Vista de Natal/RN"
             />
             <View style={styles.heroOverlay}>
-              <Image
-                source={{ uri: config.seal_image_url }}
-                style={styles.heroSeal}
-                resizeMode="contain"
-                accessibilityLabel={config.seal_alt}
-              />
+              <SealCircle size={64} style={styles.heroSeal} />
               <Text accessibilityRole="header" style={styles.heroTitle}>{config.app_name}</Text>
               <Text style={styles.heroSub}>{config.header_banner_subtitle}</Text>
             </View>

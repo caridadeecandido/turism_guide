@@ -3,6 +3,40 @@ import { useSiteConfig } from "@/src/site-config";
 import { colors, fontSizes, spacing } from "@/src/theme";
 import { useA11y } from "@/src/accessibility";
 
+// A imagem do selo (static/brand/selo.jpg) é uma medalha redonda sobre fundo branco.
+// Como o app é tema escuro, exibimos o selo recortado em CÍRCULO (sobre fundos escuros),
+// com zoom calculado para a medalha dourada preencher o círculo sem borda branca.
+// Medições da imagem: medalha ~776px de diâmetro, centro (456, 780) numa imagem 900x1600;
+// 6% de folga garante que a borda dourada cubra o círculo sem sobrar branco.
+const SEAL_IMG_W = 1.2294; // largura da imagem ÷ diâmetro do círculo
+const SEAL_IMG_H = 2.1856; // altura da imagem ÷ diâmetro do círculo
+const SEAL_IMG_LEFT = -0.1229;
+const SEAL_IMG_TOP = -0.5655;
+
+/** Selo recortado em círculo — use sobre fundos ESCUROS para esconder o fundo branco da imagem. */
+export function SealCircle({ size, style }: { size: number; style?: any }) {
+  const { config } = useSiteConfig();
+  return (
+    <View
+      style={[{ width: size, height: size, borderRadius: size / 2, overflow: "hidden" }, style]}
+      accessibilityRole="image"
+      accessibilityLabel={config.seal_alt}
+    >
+      <Image
+        source={{ uri: config.seal_image_url }}
+        resizeMode="cover"
+        style={{
+          position: "absolute",
+          width: size * SEAL_IMG_W,
+          height: size * SEAL_IMG_H,
+          left: size * SEAL_IMG_LEFT,
+          top: size * SEAL_IMG_TOP,
+        }}
+      />
+    </View>
+  );
+}
+
 /** Compact branded seal bar (used in screen headers). */
 export function SealHeader({ onPress }: { onPress?: () => void }) {
   const { config } = useSiteConfig();
@@ -18,7 +52,7 @@ export function SealHeader({ onPress }: { onPress?: () => void }) {
       accessibilityLabel={config.seal_alt}
       testID="seal-header"
     >
-      <Image source={{ uri: config.seal_image_url }} style={styles.img} accessibilityLabel={config.seal_alt} resizeMode="contain" />
+      <SealCircle size={48} />
       <View style={{ flex: 1 }}>
         <Text accessibilityRole="header" style={styles.title} numberOfLines={1}>{config.header_banner_title}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>{config.header_banner_subtitle}</Text>
@@ -33,12 +67,7 @@ export function SealFooter() {
 
   return (
     <View style={styles.footer} accessibilityLabel="Rodapé com selo de certificação">
-      <Image
-        source={{ uri: config.seal_image_url }}
-        style={styles.footerImg}
-        accessibilityLabel={config.seal_alt}
-        resizeMode="contain"
-      />
+      <SealCircle size={32} />
       <Text
         style={styles.footerText}
         onPress={() => speak(config.seal_alt)}
@@ -62,7 +91,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.brand,
   },
-  img: { width: 48, height: 48 },
   title: { color: colors.text, fontSize: fontSizes.body, fontWeight: "800" },
   subtitle: { color: colors.brandLight, fontSize: 12, fontWeight: "600", marginTop: 2 },
   footer: {
@@ -76,6 +104,5 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
-  footerImg: { width: 32, height: 32 },
   footerText: { color: colors.textSecondary, fontSize: 12, textAlign: "center", flex: 1 },
 });

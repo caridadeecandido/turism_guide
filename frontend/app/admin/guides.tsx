@@ -12,6 +12,7 @@ import { Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAdminAuth } from "@/src/admin-auth";
 import { useSiteConfig } from "@/src/site-config";
+import { SealCircle } from "@/src/components/SealBranding";
 
 const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -195,7 +196,7 @@ export default function AdminGuides() {
       </View>
 
       <View style={styles.banner}>
-        <Image source={{ uri: config.seal_image_url }} style={styles.bannerSeal} resizeMode="contain" accessibilityLabel={config.seal_alt} />
+        <SealCircle size={56} style={styles.bannerSeal} />
         <View style={{ flex: 1 }}>
           <Text style={styles.bannerTitle}>{guides.length} guias cadastrados</Text>
           <Text style={styles.bannerSub}>Cada guia recebe um código de selo único após capacitação.</Text>

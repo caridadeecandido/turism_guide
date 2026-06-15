@@ -21,7 +21,7 @@ import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { useSiteConfig } from "@/src/site-config";
-import { SealFooter } from "@/src/components/SealBranding";
+import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 export default function GuideDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -266,12 +266,7 @@ export default function GuideDetail() {
         {/* Certification block */}
         <View style={styles.certBlock}>
           <View style={styles.certHeader}>
-            <Image
-              source={{ uri: config.seal_image_url }}
-              style={styles.certSeal}
-              resizeMode="contain"
-              accessibilityLabel={config.seal_alt}
-            />
+            <SealCircle size={60} style={styles.certSeal} />
             <View style={{ flex: 1 }}>
               <Text accessibilityRole="header" style={styles.certTitle}>Certificação Categoria Ouro</Text>
               <Text style={styles.certCourse}>{guide.certification_course}</Text>

@@ -16,7 +16,7 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useSiteConfig } from "@/src/site-config";
-import { SealFooter } from "@/src/components/SealBranding";
+import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 export default function GuidesList() {
   const { config } = useSiteConfig();
@@ -73,12 +73,7 @@ export default function GuidesList() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <View style={styles.hero}>
           <View style={styles.heroIconWrap}>
-            <Image
-              source={{ uri: config.seal_image_url }}
-              style={styles.heroSeal}
-              resizeMode="contain"
-              accessibilityLabel={config.seal_alt}
-            />
+            <SealCircle size={72} />
           </View>
           <Text accessibilityRole="header" style={styles.heroTitle}>Guias com Selo Categoria Ouro</Text>
           <Text style={styles.heroSub}>
