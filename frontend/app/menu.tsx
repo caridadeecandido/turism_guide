@@ -109,11 +109,11 @@ export default function Menu() {
         <Section title="Acessibilidade">
           <View style={styles.card}>
             <ToggleRow
-              icon="phone-portrait-outline"
-              label="Vibração ao tocar"
-              value={prefs.haptic}
-              onChange={(v) => set("haptic", v)}
-              testID="toggle-haptic"
+              icon="volume-high-outline"
+              label="Audiodescrição ao tocar"
+              value={prefs.speakOnTouch}
+              onChange={(v) => set("speakOnTouch", v)}
+              testID="toggle-speak"
             />
           </View>
         </Section>

@@ -15,11 +15,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
-import { useA11y } from "@/src/accessibility";
 import { getCurrentCoords, distanceKm, NATAL_CENTER, formatDistance } from "@/src/geo";
 
 export default function NearMe() {
-  const { vibrate } = useA11y();
   const params = useLocalSearchParams<{ category?: string }>();
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [categories, setCategories] = useState<string[]>(["Todos"]);
@@ -118,7 +116,7 @@ export default function NearMe() {
             <TouchableOpacity
               key={spot.id}
               style={styles.card}
-              onPress={() => { vibrate("light"); router.push(`/spot/${spot.id}`); }}
+              onPress={() => router.push(`/spot/${spot.id}`)}
               accessibilityRole="button"
               accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${formatDistance(spot._live_distance)}. Toque para ver detalhes e audiodescrição.`}
               testID={`spot-${spot.id}`}

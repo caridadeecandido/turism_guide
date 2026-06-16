@@ -15,12 +15,10 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
-import { useA11y } from "@/src/accessibility";
 
 const CATEGORIES = ["Todos", "Hospedagem", "Alimentação", "Passeio"];
 
 export default function Marketplace() {
-  const { vibrate } = useA11y();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("Todos");
@@ -92,7 +90,7 @@ export default function Marketplace() {
             <TouchableOpacity
               key={p.id}
               style={styles.card}
-              onPress={() => { vibrate("light"); router.push(`/partner/${p.id}`); }}
+              onPress={() => router.push(`/partner/${p.id}`)}
               accessibilityRole="button"
               accessibilityLabel={`${p.name}, ${p.category}${p.has_seal ? ", parceiro certificado" : ""}. ${p.short_description}. ${p.price_from ? `A partir de ${p.price_from}. ` : ""}Toque para ver detalhes e reservar.`}
               testID={`partner-${p.id}`}

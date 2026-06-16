@@ -15,7 +15,6 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
-import { useA11y } from "@/src/accessibility";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
@@ -154,11 +153,10 @@ export default function GuidesList() {
 }
 
 function GuideCard({ guide }: { guide: Guide }) {
-  const { vibrate } = useA11y();
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => { vibrate("light"); router.push(`/guide/${guide.id}`); }}
+      onPress={() => router.push(`/guide/${guide.id}`)}
       accessibilityRole="button"
       accessibilityLabel={`Ver perfil de ${guide.name}, ${guide.short_bio}`}
       testID={`guide-card-${guide.id}`}

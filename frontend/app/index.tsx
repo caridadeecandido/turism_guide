@@ -18,7 +18,7 @@ import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
-import { useA11y } from "@/src/accessibility";
+import { useSpeakOnPress } from "@/src/accessibility";
 import { t } from "@/src/i18n";
 import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
 import { useSiteConfig } from "@/src/site-config";
@@ -279,8 +279,9 @@ export default function Home() {
 function Shortcut({ icon, label, color, onPress, testID }: {
   icon: keyof typeof Ionicons.glyphMap; label: string; color: string; onPress: () => void; testID: string;
 }) {
+  const speakOnPress = useSpeakOnPress();
   return (
-    <TouchableOpacity style={styles.shortcut} onPress={onPress} testID={testID} accessibilityLabel={label}>
+    <TouchableOpacity style={styles.shortcut} onPress={() => { speakOnPress(label); onPress(); }} testID={testID} accessibilityLabel={label}>
       <View style={[styles.shortcutIcon, { backgroundColor: color + "25" }]}>
         <Ionicons name={icon} size={22} color={color} />
       </View>
@@ -290,11 +291,13 @@ function Shortcut({ icon, label, color, onPress, testID }: {
 }
 
 function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
-  const { vibrate } = useA11y();
+  const speakOnPress = useSpeakOnPress();
+  const { language } = useAuth();
+  const spokenName = spot.translations?.[language]?.name || spot.name;
   return (
     <TouchableOpacity
       style={styles.featuredCard}
-      onPress={() => { vibrate("light"); router.push(`/spot/${spot.id}`); }}
+      onPress={() => { speakOnPress(spokenName); router.push(`/spot/${spot.id}`); }}
       accessibilityRole="button"
       accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}. Atrativo em destaque. Toque para ver detalhes e audiodescrição.`}
       testID={`featured-${spot.id}`}
@@ -323,12 +326,14 @@ function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number 
 }
 
 function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
-  const { vibrate } = useA11y();
+  const speakOnPress = useSpeakOnPress();
+  const { language } = useAuth();
+  const spokenName = spot.translations?.[language]?.name || spot.name;
   const dist = spot._live_distance ?? spot.distance_km;
   return (
     <TouchableOpacity
       style={styles.listItem}
-      onPress={() => { vibrate("light"); router.push(`/spot/${spot.id}`); }}
+      onPress={() => { speakOnPress(spokenName); router.push(`/spot/${spot.id}`); }}
       accessibilityRole="button"
       accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${dist < 1 ? `${Math.round(dist * 1000)} metros` : `${dist.toFixed(1)} quilômetros`}. Toque para ver detalhes e audiodescrição.`}
       testID={`list-${spot.id}`}

@@ -10,7 +10,7 @@ import { useA11y } from "@/src/accessibility";
  * - Toggles persist between sessions.
  */
 export function AccessibilityPanel() {
-  const { prefs, set, vibrate } = useA11y();
+  const { prefs, set } = useA11y();
   const [anim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -22,12 +22,10 @@ export function AccessibilityPanel() {
   }, [prefs.panelOpen, anim]);
 
   const togglePanel = () => {
-    vibrate("light");
     set("panelOpen", !prefs.panelOpen);
   };
 
   const onToggle = (key: keyof typeof prefs, v: boolean) => {
-    vibrate("light");
     set(key, v);
   };
 
@@ -55,17 +53,18 @@ export function AccessibilityPanel() {
           </View>
 
           <Toggle
-            label="Vibração ao tocar"
-            hint="Vibra ao tocar em botões e cartões"
-            icon="phone-portrait"
-            value={prefs.haptic}
-            onChange={(v) => onToggle("haptic", v)}
-            testID="toggle-haptic"
+            label="Audiodescrição ao tocar"
+            hint="Lê o conteúdo em voz alta ao tocar nos itens"
+            icon="volume-high"
+            value={prefs.speakOnTouch}
+            onChange={(v) => onToggle("speakOnTouch", v)}
+            testID="toggle-speak"
           />
 
           <Text style={styles.note}>
-            O leitor de tela do seu aparelho (VoiceOver/TalkBack) lê automaticamente os
-            rótulos do app. Suas preferências são salvas neste dispositivo.
+            Use com o leitor de tela do aparelho (VoiceOver/TalkBack) DESLIGADO — se ele
+            estiver ligado, o app não fala para não duplicar a leitura. Preferências
+            salvas neste dispositivo.
           </Text>
         </Animated.View>
       )}

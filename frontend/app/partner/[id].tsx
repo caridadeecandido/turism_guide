@@ -23,12 +23,10 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
-import { useA11y } from "@/src/accessibility";
 
 export default function PartnerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { vibrate } = useA11y();
   const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -274,7 +272,7 @@ export default function PartnerDetail() {
           </View>
           <TouchableOpacity
             style={styles.reserveBtn}
-            onPress={() => { vibrate("medium"); setShowForm(true); }}
+            onPress={() => setShowForm(true)}
             accessibilityRole="button"
             accessibilityLabel={`Reservar ${partner.name}`}
             testID="reserve-button"
