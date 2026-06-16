@@ -638,6 +638,214 @@ SEED_SPOTS = [
      "distance_km": 5.0, "latitude": -5.8500, "longitude": -35.1850, "featured": False},
 ]
 
+# ===== Traduções manuais (custo zero) EN / ES (Espanha) dos atrativos =====
+# O endpoint translate_spot prioriza estas traduções manuais sobre a LLM.
+# Chaveadas por nome; mescladas em SEED_SPOTS[].translations no import.
+SPOT_TRANSLATIONS = {
+    "Morro do Careca": {
+        "en": {
+            "name": "Morro do Careca",
+            "short_description": "Natal's postcard: a 120-metre dune surrounded by Atlantic Forest.",
+            "full_description": "Morro do Careca is Natal's tourism icon: a dune about 120 metres high, surrounded by Atlantic Forest and bathed by the turquoise-blue sea of Ponta Negra.",
+            "audio_description": "You are standing in front of Morro do Careca, Natal's postcard view. Picture an immense dune of pale sand, about one hundred and twenty metres tall, rising straight from the beach. Along its sides, the green vegetation of the Atlantic Forest contrasts with the golden sand. Ahead of you, the Atlantic Ocean stretches out in shades of turquoise blue, with gentle waves breaking along the shore. The constant sound of the waves, the salty smell of the sea and the warm breeze on your face make this the most sensory spot in Natal.",
+        },
+        "es": {
+            "name": "Morro do Careca",
+            "short_description": "La postal de Natal: una duna de 120 metros rodeada de Bosque Atlántico.",
+            "full_description": "El Morro do Careca es el símbolo turístico de Natal: una duna de unos 120 metros de altura, rodeada de Bosque Atlántico y bañada por el mar azul turquesa de Ponta Negra.",
+            "audio_description": "Estás frente al Morro do Careca, la postal de Natal. Imagina una inmensa duna de arena clara, de unos ciento veinte metros de altura, que se alza directamente desde la playa. En sus laterales, la verde vegetación del Bosque Atlántico contrasta con la arena dorada. Ante ti, el océano Atlántico se extiende en tonos azul turquesa, con suaves olas que rompen en la orilla. El sonido constante de las olas, el olor salado del mar y la cálida brisa en el rostro hacen de este el lugar más sensorial de Natal.",
+        },
+    },
+    "Forte dos Reis Magos": {
+        "en": {
+            "name": "Reis Magos Fort",
+            "short_description": "The oldest building in Rio Grande do Norte, built in 1598 by the sea.",
+            "full_description": "Built in 1598, the Reis Magos Fortress is the oldest building in Rio Grande do Norte, shaped like a five-pointed star at the entrance of Formosa Bay.",
+            "audio_description": "You are standing before the Reis Magos Fortress, built in 1598. Picture an imposing limestone building, with thick walls yellowed by time, shaped like a five-pointed star. In front of you, the Atlantic Ocean meets the Potengi River. Old cannons point towards the horizon. You can feel the salty wind and hear the waves breaking against the centuries-old walls.",
+        },
+        "es": {
+            "name": "Fuerte de los Reyes Magos",
+            "short_description": "La construcción más antigua de Rio Grande do Norte, levantada en 1598 junto al mar.",
+            "full_description": "Levantada en 1598, la Fortaleza de los Reyes Magos es la construcción más antigua de Rio Grande do Norte, con forma de estrella de cinco puntas, a la entrada de la Bahía de la Formosa.",
+            "audio_description": "Estás ante la Fortaleza de los Reyes Magos, construida en 1598. Imagina una imponente edificación de piedra caliza, con muros gruesos y amarillentos por el paso del tiempo, en forma de estrella de cinco puntas. Ante ti, el océano Atlántico se encuentra con el río Potengi. Antiguos cañones apuntan al horizonte. Puedes sentir el viento salado y oír el romper de las olas contra las murallas centenarias.",
+        },
+    },
+    "Praia de Ponta Negra": {
+        "en": {
+            "name": "Ponta Negra Beach",
+            "short_description": "Natal's most famous beach, with a promenade and bars.",
+            "full_description": "Ponta Negra is Natal's most famous urban beach, over 4 km long, with a lively promenade and Morro do Careca in the background.",
+            "audio_description": "You are at Ponta Negra Beach. Picture a vast strip of fine, pale sand stretching for four kilometres, with warm, calm waters in shades of green and blue. The promenade, paved with Portuguese stones in black-and-white wave patterns, runs parallel to the sea. Colourful kiosks sell coconut water. In the distance, to the right, the imposing Morro do Careca closes off the landscape.",
+        },
+        "es": {
+            "name": "Playa de Ponta Negra",
+            "short_description": "La playa más famosa de Natal, con paseo marítimo y bares.",
+            "full_description": "Ponta Negra es la playa urbana más famosa de Natal, con más de 4 km de extensión, un animado paseo marítimo y el Morro do Careca al fondo.",
+            "audio_description": "Estás en la Playa de Ponta Negra. Imagina una amplia franja de arena fina y clara que se extiende a lo largo de cuatro kilómetros, con aguas cálidas y tranquilas en tonos verdes y azules. El paseo marítimo, empedrado al estilo portugués con olas en blanco y negro, discurre paralelo al mar. Quioscos de colores venden agua de coco. Al fondo, a la derecha, el imponente Morro do Careca cierra el paisaje.",
+        },
+    },
+    "Parque das Dunas": {
+        "en": {
+            "name": "Dunes Park",
+            "short_description": "Brazil's second-largest urban Atlantic Forest reserve.",
+            "full_description": "1,172 hectares of urban Atlantic Forest, with ecological trails, an amphitheatre and rich biodiversity.",
+            "audio_description": "You are at the entrance of the Dunes Park. A dense Atlantic Forest forms a green canopy over sandy trails. The air is cool and humid, carrying the scents of leaves and tropical flowers. You can hear the song of the rufous-bellied thrush and the rustling of leaves in the wind.",
+        },
+        "es": {
+            "name": "Parque de las Dunas",
+            "short_description": "La segunda mayor reserva urbana de Bosque Atlántico de Brasil.",
+            "full_description": "1.172 hectáreas de Bosque Atlántico urbano, con senderos ecológicos, anfiteatro y una rica biodiversidad.",
+            "audio_description": "Estás en la entrada del Parque de las Dunas. Un denso Bosque Atlántico forma un techo verde sobre senderos de arena. El aire es fresco y húmedo, con aromas de hojas y flores tropicales. Oyes el canto del zorzal y el susurro de las hojas con el viento.",
+        },
+    },
+    "Dunas de Genipabu": {
+        "en": {
+            "name": "Genipabu Dunes",
+            "short_description": "Shifting dunes with buggy rides and dromedaries.",
+            "full_description": "Brazil's most famous shifting-dune landscape, with a lagoon, buggies and dromedaries.",
+            "audio_description": "You are at the Genipabu Dunes. Picture a vast desert of pale sand, with dunes that rise and fall like giant waves. A lagoon of dark, crystal-clear water lies among the dunes. You can hear the wind carrying grains of sand.",
+        },
+        "es": {
+            "name": "Dunas de Genipabu",
+            "short_description": "Dunas móviles con paseos en buggy y dromedarios.",
+            "full_description": "El paisaje de dunas móviles más famoso de Brasil, con laguna, buggies y dromedarios.",
+            "audio_description": "Estás en las Dunas de Genipabu. Imagina un vasto desierto de arena clara, con dunas que suben y bajan como olas gigantes. Hay una laguna de aguas oscuras y cristalinas en medio de las dunas. Puedes oír el viento que arrastra granos de arena.",
+        },
+    },
+    "Praia da Pipa": {
+        "en": {
+            "name": "Pipa Beach",
+            "short_description": "A paradise beach with cliffs and dolphins.",
+            "full_description": "Colourful cliffs, dolphins that come close to bathers, and a charming village.",
+            "audio_description": "You are at Pipa Beach. Vertical cliffs in shades of red, orange and white. The emerald-green sea is warm and calm. At certain times, dolphins come close and can be heard breathing near the shore.",
+        },
+        "es": {
+            "name": "Playa de Pipa",
+            "short_description": "Una playa paradisíaca con acantilados y delfines.",
+            "full_description": "Acantilados de colores, delfines que se acercan a los bañistas y un pueblo con encanto.",
+            "audio_description": "Estás en la Playa de Pipa. Acantilados verticales en tonos rojos, naranjas y blancos. El mar verde esmeralda es cálido y tranquilo. En ciertos momentos, los delfines se acercan y se les puede oír respirar cerca de la arena.",
+        },
+    },
+    "Maracajaú": {
+        "en": {
+            "name": "Maracajaú",
+            "short_description": "Coral reefs with natural pools and snorkelling.",
+            "full_description": "The 'Brazilian Caribbean': natural pools 7 km offshore, full of colourful fish.",
+            "audio_description": "You are in Maracajaú. Catamarans set off towards the parrachos, coral banks that form natural pools seven kilometres off the coast. The water is warm and crystal-clear.",
+        },
+        "es": {
+            "name": "Maracajaú",
+            "short_description": "Arrecifes de coral con piscinas naturales y submarinismo.",
+            "full_description": "El 'Caribe brasileño': piscinas naturales a 7 km de la costa, con peces de colores.",
+            "audio_description": "Estás en Maracajaú. Los catamaranes parten hacia los parrachos, bancos de coral que forman piscinas naturales a siete kilómetros de la costa. El agua es cálida y transparente.",
+        },
+    },
+    "Centro Histórico - Cidade Alta": {
+        "en": {
+            "name": "Historic Center – Cidade Alta",
+            "short_description": "Natal's oldest district, with churches and museums.",
+            "full_description": "Natal's founding district, home to the Mother Church, the Câmara Cascudo Memorial and the Beco da Lama.",
+            "audio_description": "You are in Natal's Historic Center, the Cidade Alta. Narrow streets paved with uneven cobblestones, lined with colonial mansions painted in bright colours. The Mother Church, with its white-and-grey façade, dominates the square.",
+        },
+        "es": {
+            "name": "Centro Histórico – Cidade Alta",
+            "short_description": "El barrio más antiguo de Natal, con iglesias y museos.",
+            "full_description": "El barrio fundador de Natal, con la Iglesia Matriz, el Memorial Câmara Cascudo y el Beco da Lama.",
+            "audio_description": "Estás en el Centro Histórico de Natal, la Cidade Alta. Calles estrechas empedradas con piedras irregulares, con casonas coloniales pintadas en colores vivos. La Iglesia Matriz, de fachada blanca y gris, domina la plaza.",
+        },
+    },
+    "Praia do Meio": {
+        "en": {
+            "name": "Praia do Meio",
+            "short_description": "An urban beach with a promenade and beach huts.",
+            "full_description": "Between Praia do Forte and Praia dos Artistas, with a tree-lined promenade and live music.",
+            "audio_description": "You are at Praia do Meio. The promenade is wide, with benches shaded by coconut palms. The sea is rough here, with waves that roar as they hit the sand.",
+        },
+        "es": {
+            "name": "Playa do Meio",
+            "short_description": "Playa urbana con paseo marítimo y chiringuitos.",
+            "full_description": "Entre la Praia do Forte y la Praia dos Artistas, con un paseo arbolado y música en directo.",
+            "audio_description": "Estás en la Playa do Meio. El paseo es amplio, con bancos a la sombra de los cocoteros. El mar es fuerte aquí, con olas que rugen al golpear la arena.",
+        },
+    },
+    "Praia dos Artistas": {
+        "en": {
+            "name": "Praia dos Artistas",
+            "short_description": "A traditional urban beach, home to the Capitania das Artes cultural centre.",
+            "full_description": "Nightlife, the Capitania das Artes cultural space and a spectacular sunrise.",
+            "audio_description": "You are at Praia dos Artistas. Colourful benches shaped like painter's palettes decorate the promenade. The sea is wilder here, with waves that break into white foam.",
+        },
+        "es": {
+            "name": "Playa dos Artistas",
+            "short_description": "Playa urbana tradicional, sede de la Capitania das Artes.",
+            "full_description": "Vida nocturna, el Espacio Cultural Capitania das Artes y un amanecer espectacular.",
+            "audio_description": "Estás en la Playa dos Artistas. Bancos de colores con forma de paleta de pintor decoran el paseo. El mar es más bravo aquí, con olas que rompen en espuma blanca.",
+        },
+    },
+    "Mirante de Mãe Luiza": {
+        "en": {
+            "name": "Mãe Luiza Lookout",
+            "short_description": "A historic lighthouse with a panoramic view of Natal.",
+            "full_description": "A 1951 lighthouse with the best panoramic view of Natal, embracing sea, city and dunes.",
+            "audio_description": "You are at the top of the Mãe Luiza Lookout. A 360-degree view: ahead, the endless ocean; to the right, the Via Costeira coastal road; to the left, Morro do Careca; behind you, the city. The wind is strong and salty.",
+        },
+        "es": {
+            "name": "Mirador de Mãe Luiza",
+            "short_description": "Un faro histórico con vistas panorámicas de Natal.",
+            "full_description": "Un faro de 1951 con la mejor vista panorámica de Natal, que abraza mar, ciudad y dunas.",
+            "audio_description": "Estás en lo alto del Mirador de Mãe Luiza. Una vista de 360 grados: al frente, el océano infinito; a la derecha, la Vía Costera; a la izquierda, el Morro do Careca; detrás, la ciudad. El viento es fuerte y salado.",
+        },
+    },
+    "Catedral Nova de Natal": {
+        "en": {
+            "name": "New Cathedral of Natal",
+            "short_description": "A modernist church with a pyramid shape.",
+            "full_description": "A modernist landmark of the Northeast, with a unique pyramid shape and colourful stained-glass windows.",
+            "audio_description": "You are standing before the New Cathedral of Natal. A monumental pyramid-shaped building, with white walls and stained-glass windows as colourful as fragments of gemstones. Inside, the coloured light creates a mystical atmosphere.",
+        },
+        "es": {
+            "name": "Catedral Nueva de Natal",
+            "short_description": "Un templo modernista con forma de pirámide.",
+            "full_description": "Un hito modernista del Nordeste, con una forma piramidal única y vidrieras de colores.",
+            "audio_description": "Estás ante la Catedral Nueva de Natal. Una construcción piramidal monumental, de paredes blancas y vidrieras de colores como fragmentos de piedras preciosas. En el interior, la luz coloreada crea un ambiente místico.",
+        },
+    },
+    "Café do Forte": {
+        "en": {
+            "name": "Café do Forte",
+            "short_description": "A café with a Braille menu and a sea view.",
+            "full_description": "A charming café near the Reis Magos Fortress, with inclusive service.",
+            "audio_description": "You are at Café do Forte. The room smells of coffee and tapioca cake. Wooden tables with Braille menus. Through the windows, you can hear the waves breaking.",
+        },
+        "es": {
+            "name": "Café do Forte",
+            "short_description": "Una cafetería con carta en braille y vistas al mar.",
+            "full_description": "Una cafetería con encanto cerca de la Fortaleza de los Reyes Magos, con atención inclusiva.",
+            "audio_description": "Estás en el Café do Forte. El ambiente huele a café y a bizcocho de tapioca. Mesas de madera con cartas en braille. Por las ventanas se puede oír el romper de las olas.",
+        },
+    },
+    "Hotel Parque da Costeira": {
+        "en": {
+            "name": "Parque da Costeira Hotel",
+            "short_description": "A resort hotel with accessible rooms on the Via Costeira.",
+            "full_description": "A resort with extensive green areas, swimming pools, direct beach access and fully adapted rooms.",
+            "audio_description": "You are at the Parque da Costeira Hotel. A spacious, airy lobby with marble floors. The sound of a fountain echoing. The scent of tropical flowers. Accessible rooms on the ground floor, with a balcony and a sea view.",
+        },
+        "es": {
+            "name": "Hotel Parque da Costeira",
+            "short_description": "Un hotel resort con habitaciones accesibles en la Vía Costera.",
+            "full_description": "Un resort con amplias zonas verdes, piscinas, acceso directo a la playa y habitaciones totalmente adaptadas.",
+            "audio_description": "Estás en el Hotel Parque da Costeira. Un vestíbulo amplio y aireado, con suelo de mármol. El sonido de una fuente que resuena. El aroma de flores tropicales. Habitaciones accesibles en la planta baja, con balcón y vistas al mar.",
+        },
+    },
+}
+
+# Mescla as traduções manuais nos seeds (formato lido por translate_spot).
+for _spot in SEED_SPOTS:
+    _tr = SPOT_TRANSLATIONS.get(_spot["name"])
+    if _tr:
+        _spot["translations"] = _tr
+
 SEED_PARTNERS = [
     {"name": "Pousada Inclusiva Ponta Negra", "category": "Hospedagem", "neighborhood": "Ponta Negra",
      "short_description": "Pousada boutique com quartos 100% adaptados a 200m da praia.",
