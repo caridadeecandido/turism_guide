@@ -128,6 +128,19 @@ export default function MapScreen() {
 <div id="map"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  // Navega para o detalhe do spot funcionando nas duas plataformas:
+  // - nativo: window.ReactNativeWebView.postMessage (lido pelo onMessage do WebView);
+  // - web (iframe): window.parent.postMessage (lido pelo listener 'message' no componente).
+  function goSpot(id) {
+    var msg = 'spot:' + id;
+    if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+      window.ReactNativeWebView.postMessage(msg);
+    } else if (window.parent) {
+      window.parent.postMessage(msg, '*');
+    }
+    return false;
+  }
+
   const map = L.map('map', { zoomControl: true, attributionControl: false })
     .setView([${center.latitude}, ${center.longitude}], ${zoom});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -145,7 +158,7 @@ export default function MapScreen() {
     marker.bindPopup(
       '<div style="min-width:160px"><strong>' + safeName + '</strong><br/>' +
       '<span style="color:#666;font-size:12px">' + safeMeta + '</span><br/>' +
-      '<a href="#" onclick="window.ReactNativeWebView && window.ReactNativeWebView.postMessage(\\'spot:' + m.id + '\\'); return false;" style="color:#7C3AED;font-weight:600">Ver detalhes →</a></div>'
+      '<a href="#" onclick="return goSpot(\\'' + m.id + '\\')" style="color:#7C3AED;font-weight:600">Ver detalhes →</a></div>'
     );
   });
 
@@ -168,13 +181,23 @@ export default function MapScreen() {
   // Memoizado para o WebView não recarregar a cada tecla digitada (só quando o HTML muda).
   const webSource = useMemo(() => ({ html }), [html]);
 
-  const onMessage = (e: any) => {
-    const msg = e.nativeEvent?.data;
+  // Navega a partir de uma mensagem "spot:<id>" vinda do popup (web ou nativo); ignora o resto.
+  const handleSpotMessage = (msg: unknown) => {
     if (typeof msg === "string" && msg.startsWith("spot:")) {
-      const id = msg.replace("spot:", "");
-      router.push(`/spot/${id}`);
+      router.push(`/spot/${msg.slice("spot:".length)}`);
     }
   };
+
+  // Nativo: o WebView entrega a mensagem em e.nativeEvent.data.
+  const onMessage = (e: any) => handleSpotMessage(e.nativeEvent?.data);
+
+  // Web (iframe): o popup faz window.parent.postMessage; ouvimos o evento 'message'.
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const listener = (e: MessageEvent) => handleSpotMessage(e.data);
+    window.addEventListener("message", listener);
+    return () => window.removeEventListener("message", listener);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
