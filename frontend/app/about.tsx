@@ -15,7 +15,7 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { useAuth } from "@/src/auth-context";
-import { useSiteConfig } from "@/src/site-config";
+import { useSiteConfig, localizedField } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 type Lang = "pt" | "en" | "es";
@@ -119,7 +119,7 @@ export default function About() {
             <View style={styles.heroOverlay}>
               <SealCircle size={64} style={styles.heroSeal} />
               <Text accessibilityRole="header" style={styles.heroTitle}>{config.app_name}</Text>
-              <Text style={styles.heroSub}>{config.header_banner_subtitle}</Text>
+              <Text style={styles.heroSub}>{localizedField(config, "header_banner_subtitle", lang)}</Text>
             </View>
           </View>
         )}

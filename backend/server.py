@@ -349,10 +349,18 @@ class SiteConfig(BaseModel):
     hero_image_url: str = ""  # banner hero image (about page)
     seal_image_url: str
     seal_alt: str
+    seal_alt_en: str = ""
+    seal_alt_es: str = ""
     # Banners
     header_banner_title: str
+    header_banner_title_en: str = ""
+    header_banner_title_es: str = ""
     header_banner_subtitle: str
+    header_banner_subtitle_en: str = ""
+    header_banner_subtitle_es: str = ""
     footer_text: str
+    footer_text_en: str = ""
+    footer_text_es: str = ""
     # Welcome strings
     welcome_pt: str
     welcome_en: str
@@ -402,9 +410,17 @@ class SiteConfigUpdate(BaseModel):
     hero_image_url: Optional[str] = None
     seal_image_url: Optional[str] = None
     seal_alt: Optional[str] = None
+    seal_alt_en: Optional[str] = None
+    seal_alt_es: Optional[str] = None
     header_banner_title: Optional[str] = None
+    header_banner_title_en: Optional[str] = None
+    header_banner_title_es: Optional[str] = None
     header_banner_subtitle: Optional[str] = None
+    header_banner_subtitle_en: Optional[str] = None
+    header_banner_subtitle_es: Optional[str] = None
     footer_text: Optional[str] = None
+    footer_text_en: Optional[str] = None
+    footer_text_es: Optional[str] = None
     welcome_pt: Optional[str] = None
     welcome_en: Optional[str] = None
     welcome_es: Optional[str] = None
@@ -453,9 +469,17 @@ DEFAULT_SITE_CONFIG = {
     "hero_image_url": "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=80",
     "seal_image_url": BRAND_SEAL_URL,
     "seal_alt": "Selo oficial Turismo que se Sente — Categoria Ouro. Medalha dourada com fundo roxo e ícones de cadeirante, cão-guia, audição assistida, Libras e Braille.",
+    "seal_alt_en": "Official Turismo que se Sente seal — Gold Category. A gold medal with a purple background and icons of a wheelchair user, a guide dog, assisted hearing, sign language and Braille.",
+    "seal_alt_es": "Sello oficial Turismo que se Sente — Categoría Oro. Una medalla dorada con fondo morado e iconos de persona en silla de ruedas, perro guía, audición asistida, lengua de signos y braille.",
     "header_banner_title": "Turismo que se Sente",
+    "header_banner_title_en": "Turismo que se Sente",
+    "header_banner_title_es": "Turismo que se Sente",
     "header_banner_subtitle": "Natal/RN acessível para todos",
+    "header_banner_subtitle_en": "Accessible Natal/RN for everyone",
+    "header_banner_subtitle_es": "Natal/RN accesible para todos",
     "footer_text": "Projeto SENAC RN · Turismo que se Sente © 2026",
+    "footer_text_en": "SENAC RN Project · Turismo que se Sente © 2026",
+    "footer_text_es": "Proyecto SENAC RN · Turismo que se Sente © 2026",
     "welcome_pt": "Bem-vindo(a) a Natal!",
     "welcome_en": "Welcome to Natal!",
     "welcome_es": "¡Bienvenido(a) a Natal!",
@@ -1666,6 +1690,10 @@ async def startup_indexes_and_seed():
             updates["app_icon_url"] = DEFAULT_SITE_CONFIG["app_icon_url"]
         # Set defaults for fields that didn't exist before (only if missing)
         for new_key in ("app_name", "app_logo_url", "app_icon_url", "hero_image_url",
+                        "seal_alt_en", "seal_alt_es",
+                        "header_banner_title_en", "header_banner_title_es",
+                        "header_banner_subtitle_en", "header_banner_subtitle_es",
+                        "footer_text_en", "footer_text_es",
                         "about_pt", "about_en", "about_es",
                         "mission_pt", "mission_en", "mission_es",
                         "vision_pt", "vision_en", "vision_es",

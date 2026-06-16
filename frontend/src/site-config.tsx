@@ -18,10 +18,18 @@ export type SiteConfig = {
   hero_image_url: string;
   seal_image_url: string;
   seal_alt: string;
+  seal_alt_en?: string;
+  seal_alt_es?: string;
   // Banners
   header_banner_title: string;
+  header_banner_title_en?: string;
+  header_banner_title_es?: string;
   header_banner_subtitle: string;
+  header_banner_subtitle_en?: string;
+  header_banner_subtitle_es?: string;
   footer_text: string;
+  footer_text_en?: string;
+  footer_text_es?: string;
   // Welcome
   welcome_pt: string;
   welcome_en: string;
@@ -70,9 +78,17 @@ const DEFAULTS: SiteConfig = {
   hero_image_url: "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=80",
   seal_image_url: SEAL_URL,
   seal_alt: "Selo oficial Turismo que se Sente — Categoria Ouro",
+  seal_alt_en: "Official Turismo que se Sente seal — Gold Category",
+  seal_alt_es: "Sello oficial Turismo que se Sente — Categoría Oro",
   header_banner_title: "Turismo que se Sente",
+  header_banner_title_en: "Turismo que se Sente",
+  header_banner_title_es: "Turismo que se Sente",
   header_banner_subtitle: "Natal/RN acessível para todos",
+  header_banner_subtitle_en: "Accessible Natal/RN for everyone",
+  header_banner_subtitle_es: "Natal/RN accesible para todos",
   footer_text: "Projeto SENAC RN · Turismo que se Sente © 2026",
+  footer_text_en: "SENAC RN Project · Turismo que se Sente © 2026",
+  footer_text_es: "Proyecto SENAC RN · Turismo que se Sente © 2026",
   welcome_pt: "Bem-vindo(a) a Natal!",
   welcome_en: "Welcome to Natal!",
   welcome_es: "¡Bienvenido(a) a Natal!",
@@ -157,4 +173,21 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
 
 export function useSiteConfig() {
   return useContext(SiteCtx);
+}
+
+type LocalizableField = "seal_alt" | "header_banner_title" | "header_banner_subtitle" | "footer_text";
+
+/**
+ * Retorna o campo de texto do site_config no idioma atual: en → <field>_en,
+ * es → <field>_es, com fallback para o campo PT base se a variante estiver vazia.
+ */
+export function localizedField(
+  config: SiteConfig,
+  field: LocalizableField,
+  language: "pt" | "en" | "es",
+): string {
+  const base = config[field] || "";
+  if (language === "pt") return base;
+  const variant = (config as any)[`${field}_${language}`];
+  return typeof variant === "string" && variant.trim() ? variant : base;
 }

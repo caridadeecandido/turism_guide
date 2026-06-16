@@ -21,7 +21,7 @@ import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { useA11y } from "@/src/accessibility";
-import { useSiteConfig } from "@/src/site-config";
+import { useSiteConfig, localizedField } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 export default function GuideDetail() {
@@ -193,7 +193,7 @@ export default function GuideDetail() {
                   source={{ uri: config.seal_image_url }}
                   style={styles.sealRibbonImg}
                   resizeMode="contain"
-                  accessibilityLabel={config.seal_alt}
+                  accessibilityLabel={localizedField(config, "seal_alt", language)}
                 />
               </View>
             )}
