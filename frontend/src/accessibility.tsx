@@ -1,35 +1,26 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
-import * as Speech from "expo-speech";
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
 
 const KEY = "tqss_a11y_prefs";
 
+// Apenas preferências REAIS, que produzem efeito no app. (O leitor de tela do SO
+// já lê os accessibilityLabel, então não duplicamos isso em opções placebo.)
 export type A11yPrefs = {
-  audioOnFocus: boolean;
-  beepFeedback: boolean;
   haptic: boolean;
-  largeButtons: boolean;
   panelOpen: boolean;
 };
 
 const DEFAULTS: A11yPrefs = {
-  audioOnFocus: false,
-  beepFeedback: false,
   haptic: true,
-  largeButtons: false,
   panelOpen: false,
 };
 
 type Ctx = {
   prefs: A11yPrefs;
   set: (k: keyof A11yPrefs, v: boolean) => Promise<void>;
-  /** Read a label aloud (uses prefs.audioOnFocus check internally). */
-  speak: (text: string, locale?: string) => void;
-  /** Play a short feedback beep. Honors prefs.beepFeedback. */
-  beep: () => void;
-  /** Vibrate. Honors prefs.haptic. */
+  /** Vibra em interações reais (toques em cartões/botões). Respeita prefs.haptic. */
   vibrate: (style?: "light" | "medium" | "heavy") => void;
 };
 
@@ -37,90 +28,71 @@ const A11yCtx = createContext<Ctx | null>(null);
 
 async function loadPrefs(): Promise<A11yPrefs> {
   try {
-    const raw = Platform.OS === "web" ? localStorage.getItem(KEY) : await SecureStore.getItemAsync(KEY);
+    const raw =
+      Platform.OS === "web"
+        ? (typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : null)
+        : await SecureStore.getItemAsync(KEY);
     if (!raw) return DEFAULTS;
-    return { ...DEFAULTS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    // panelOpen nunca é restaurado aberto entre sessões.
+    return { haptic: parsed.haptic ?? DEFAULTS.haptic, panelOpen: false };
   } catch {
     return DEFAULTS;
   }
 }
 
 async function savePrefs(p: A11yPrefs) {
-  const s = JSON.stringify(p);
-  if (Platform.OS === "web") localStorage.setItem(KEY, s);
-  else await SecureStore.setItemAsync(KEY, s);
+  try {
+    const s = JSON.stringify(p);
+    if (Platform.OS === "web") {
+      if (typeof localStorage !== "undefined") localStorage.setItem(KEY, s);
+    } else {
+      await SecureStore.setItemAsync(KEY, s);
+    }
+  } catch {}
 }
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<A11yPrefs>(DEFAULTS);
-  const audioCtxRef = useRef<any>(null);
+  // Espelho síncrono para ler a preferência atual sem closures defasados nem
+  // efeitos colaterais dentro do updater de estado.
+  const prefsRef = useRef<A11yPrefs>(prefs);
 
   useEffect(() => {
-    loadPrefs().then(setPrefs);
-  }, []);
+    prefsRef.current = prefs;
+  }, [prefs]);
 
-  const set = useCallback(async (k: keyof A11yPrefs, v: boolean) => {
-    setPrefs((prev) => {
-      const next = { ...prev, [k]: v };
-      savePrefs(next);
-      return next;
+  useEffect(() => {
+    loadPrefs().then((p) => {
+      prefsRef.current = p;
+      setPrefs(p);
     });
   }, []);
 
-  const speak = useCallback((text: string, locale: string = "pt-BR") => {
-    if (!prefs.audioOnFocus || !text) return;
-    Speech.stop();
-    Speech.speak(text, { language: locale, rate: 1.0 });
-  }, [prefs.audioOnFocus]);
-
-  const beep = useCallback(() => {
-    if (!prefs.beepFeedback) return;
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      try {
-        if (!audioCtxRef.current) {
-          const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AudioCtx) audioCtxRef.current = new AudioCtx();
-        }
-        const ctx = audioCtxRef.current;
-        if (!ctx) return;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.value = 880;
-        osc.type = "sine";
-        gain.gain.setValueAtTime(0.001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.2);
-      } catch {}
-    } else {
-      // Native: emit a haptic-ish "click" using haptics if enabled, plus a short speak("")
-      Speech.stop();
-      Speech.speak(" ", { language: "pt-BR", rate: 2.0 });
-    }
-  }, [prefs.beepFeedback]);
+  const set = useCallback(async (k: keyof A11yPrefs, v: boolean) => {
+    const next = { ...prefsRef.current, [k]: v };
+    prefsRef.current = next;
+    setPrefs(next);
+    await savePrefs(next);
+  }, []);
 
   const vibrate = useCallback((style: "light" | "medium" | "heavy" = "light") => {
-    if (!prefs.haptic) return;
+    if (!prefsRef.current.haptic) return;
     if (Platform.OS === "web") {
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(style === "heavy" ? 60 : style === "medium" ? 30 : 12);
-      }
+      const nav: any = typeof navigator !== "undefined" ? navigator : null;
+      if (nav?.vibrate) nav.vibrate(style === "heavy" ? 60 : style === "medium" ? 30 : 12);
       return;
     }
-    const s = style === "heavy" ? Haptics.ImpactFeedbackStyle.Heavy
-      : style === "medium" ? Haptics.ImpactFeedbackStyle.Medium
-      : Haptics.ImpactFeedbackStyle.Light;
+    const s =
+      style === "heavy"
+        ? Haptics.ImpactFeedbackStyle.Heavy
+        : style === "medium"
+          ? Haptics.ImpactFeedbackStyle.Medium
+          : Haptics.ImpactFeedbackStyle.Light;
     Haptics.impactAsync(s).catch(() => {});
-  }, [prefs.haptic]);
+  }, []);
 
-  return (
-    <A11yCtx.Provider value={{ prefs, set, speak, beep, vibrate }}>
-      {children}
-    </A11yCtx.Provider>
-  );
+  return <A11yCtx.Provider value={{ prefs, set, vibrate }}>{children}</A11yCtx.Provider>;
 }
 
 export function useA11y(): Ctx {

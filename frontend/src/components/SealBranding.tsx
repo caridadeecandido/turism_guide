@@ -1,7 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useSiteConfig } from "@/src/site-config";
 import { colors, fontSizes, spacing } from "@/src/theme";
-import { useA11y } from "@/src/accessibility";
 
 // A imagem do selo (static/brand/selo.jpg) é uma medalha redonda sobre fundo branco.
 // Como o app é tema escuro, exibimos o selo recortado em CÍRCULO (sobre fundos escuros),
@@ -40,14 +39,12 @@ export function SealCircle({ size, style }: { size: number; style?: any }) {
 /** Compact branded seal bar (used in screen headers). */
 export function SealHeader({ onPress }: { onPress?: () => void }) {
   const { config } = useSiteConfig();
-  const { speak } = useA11y();
 
   return (
     <TouchableOpacity
       style={styles.bar}
       onPress={onPress}
       activeOpacity={0.85}
-      onFocus={() => speak(config.seal_alt)}
       accessibilityRole="button"
       accessibilityLabel={config.seal_alt}
       testID="seal-header"
@@ -63,14 +60,12 @@ export function SealHeader({ onPress }: { onPress?: () => void }) {
 
 export function SealFooter() {
   const { config } = useSiteConfig();
-  const { speak } = useA11y();
 
   return (
     <View style={styles.footer} accessibilityLabel="Rodapé com selo de certificação">
       <SealCircle size={32} />
       <Text
         style={styles.footerText}
-        onPress={() => speak(config.seal_alt)}
         accessibilityLabel={config.seal_alt}
         testID="seal-footer-text"
       >

@@ -17,6 +17,7 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
+import { useA11y } from "@/src/accessibility";
 import { t } from "@/src/i18n";
 
 type Translated = {
@@ -29,6 +30,7 @@ type Translated = {
 export default function SpotDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, language, isFavorite, toggleFavorite } = useAuth();
+  const { vibrate } = useA11y();
   const [spot, setSpot] = useState<TouristSpot | null>(null);
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<Translated | null>(null);
@@ -101,7 +103,7 @@ export default function SpotDetail() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconBtn, fav && styles.iconBtnActive]}
-              onPress={() => toggleFavorite(spot.id)}
+              onPress={() => { vibrate("medium"); toggleFavorite(spot.id); }}
               accessibilityRole="button"
               accessibilityLabel={fav ? `Remover ${view.name} dos favoritos` : `Adicionar ${view.name} aos favoritos`}
               testID="favorite-button"
@@ -150,7 +152,7 @@ export default function SpotDetail() {
 
         <TouchableOpacity
           style={styles.audioCta}
-          onPress={() => router.push(`/audio/${spot.id}`)}
+          onPress={() => { vibrate("light"); router.push(`/audio/${spot.id}`); }}
           accessibilityRole="button"
           accessibilityLabel={`Ouvir audiodescrição sensorial de ${view.name}`}
           testID="listen-audio-button"

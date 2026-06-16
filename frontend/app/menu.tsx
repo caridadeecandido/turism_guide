@@ -109,35 +109,11 @@ export default function Menu() {
         <Section title="Acessibilidade">
           <View style={styles.card}>
             <ToggleRow
-              icon="volume-high-outline"
-              label="Audiodescrição automática"
-              value={prefs.audioOnFocus}
-              onChange={(v) => set("audioOnFocus", v)}
-              testID="toggle-audio-focus"
-            />
-            <View style={styles.divider} />
-            <ToggleRow
-              icon="musical-notes-outline"
-              label="Retorno auditivo (beeps)"
-              value={prefs.beepFeedback}
-              onChange={(v) => set("beepFeedback", v)}
-              testID="toggle-beep"
-            />
-            <View style={styles.divider} />
-            <ToggleRow
               icon="phone-portrait-outline"
-              label="Vibração tátil"
+              label="Vibração ao tocar"
               value={prefs.haptic}
               onChange={(v) => set("haptic", v)}
               testID="toggle-haptic"
-            />
-            <View style={styles.divider} />
-            <ToggleRow
-              icon="hand-left-outline"
-              label="Botões grandes (locomoção reduzida)"
-              value={prefs.largeButtons}
-              onChange={(v) => set("largeButtons", v)}
-              testID="toggle-large"
             />
           </View>
         </Section>

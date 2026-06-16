@@ -20,12 +20,14 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
+import { useA11y } from "@/src/accessibility";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
 
 export default function GuideDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, language } = useAuth();
+  const { vibrate } = useA11y();
   const { config } = useSiteConfig();
 
   const [guide, setGuide] = useState<Guide | null>(null);
@@ -325,7 +327,7 @@ export default function GuideDetail() {
         {/* Inquiry CTA */}
         <TouchableOpacity
           style={styles.cta}
-          onPress={() => setShowInquiry((v) => !v)}
+          onPress={() => { vibrate("medium"); setShowInquiry((v) => !v); }}
           accessibilityRole="button"
           accessibilityLabel={showInquiry ? "Cancelar solicitação de contato" : `Solicitar contato com ${guide.name}`}
           testID="open-inquiry-btn"

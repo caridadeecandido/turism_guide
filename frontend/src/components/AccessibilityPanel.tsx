@@ -55,40 +55,17 @@ export function AccessibilityPanel() {
           </View>
 
           <Toggle
-            label="Áudio-descrição interativa"
-            hint="Lê em voz alta ao tocar nos elementos"
-            icon="volume-high"
-            value={prefs.audioOnFocus}
-            onChange={(v) => onToggle("audioOnFocus", v)}
-            testID="toggle-audio-focus"
-          />
-          <Toggle
-            label="Retorno auditivo"
-            hint="Beeps de confirmação"
-            icon="musical-notes"
-            value={prefs.beepFeedback}
-            onChange={(v) => onToggle("beepFeedback", v)}
-            testID="toggle-beep"
-          />
-          <Toggle
-            label="Feedback tátil"
-            hint="Vibração nos toques"
+            label="Vibração ao tocar"
+            hint="Vibra ao tocar em botões e cartões"
             icon="phone-portrait"
             value={prefs.haptic}
             onChange={(v) => onToggle("haptic", v)}
             testID="toggle-haptic"
           />
-          <Toggle
-            label="Locomoção reduzida"
-            hint="Botões grandes e fácil navegação"
-            icon="hand-left"
-            value={prefs.largeButtons}
-            onChange={(v) => onToggle("largeButtons", v)}
-            testID="toggle-large"
-          />
 
           <Text style={styles.note}>
-            Suas preferências são salvas neste dispositivo.
+            O leitor de tela do seu aparelho (VoiceOver/TalkBack) lê automaticamente os
+            rótulos do app. Suas preferências são salvas neste dispositivo.
           </Text>
         </Animated.View>
       )}

@@ -18,6 +18,7 @@ import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
+import { useA11y } from "@/src/accessibility";
 import { t } from "@/src/i18n";
 import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
 import { useSiteConfig } from "@/src/site-config";
@@ -289,10 +290,11 @@ function Shortcut({ icon, label, color, onPress, testID }: {
 }
 
 function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
+  const { vibrate } = useA11y();
   return (
     <TouchableOpacity
       style={styles.featuredCard}
-      onPress={() => router.push(`/spot/${spot.id}`)}
+      onPress={() => { vibrate("light"); router.push(`/spot/${spot.id}`); }}
       accessibilityRole="button"
       accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}. Atrativo em destaque. Toque para ver detalhes e audiodescrição.`}
       testID={`featured-${spot.id}`}
@@ -321,11 +323,12 @@ function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number 
 }
 
 function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number } }) {
+  const { vibrate } = useA11y();
   const dist = spot._live_distance ?? spot.distance_km;
   return (
     <TouchableOpacity
       style={styles.listItem}
-      onPress={() => router.push(`/spot/${spot.id}`)}
+      onPress={() => { vibrate("light"); router.push(`/spot/${spot.id}`); }}
       accessibilityRole="button"
       accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${dist < 1 ? `${Math.round(dist * 1000)} metros` : `${dist.toFixed(1)} quilômetros`}. Toque para ver detalhes e audiodescrição.`}
       testID={`list-${spot.id}`}
