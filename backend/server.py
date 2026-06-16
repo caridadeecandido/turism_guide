@@ -270,7 +270,8 @@ class Guide(BaseModel):
     seal_code: str = Field(default_factory=lambda: uuid.uuid4().hex[:10].upper())
     featured: bool = False
     active: bool = True
-    translations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    # Valores podem ser str (bio/short_bio) ou List[str] (specialties/languages/...).
+    translations: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -294,7 +295,8 @@ class GuideCreate(BaseModel):
     years_experience: int = 0
     featured: bool = False
     active: bool = True
-    translations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    # Valores podem ser str (bio/short_bio) ou List[str] (specialties/languages/...).
+    translations: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
 
 
 class GuideUpdate(BaseModel):
@@ -317,7 +319,7 @@ class GuideUpdate(BaseModel):
     years_experience: Optional[int] = None
     featured: Optional[bool] = None
     active: Optional[bool] = None
-    translations: Optional[Dict[str, Dict[str, str]]] = None
+    translations: Optional[Dict[str, Dict[str, Any]]] = None
 
 
 class TranslateResponse(BaseModel):
@@ -953,12 +955,171 @@ def _seed_guide(name: str, slug: str):
     }
 
 
+# Conteúdo MOCK plausível e variado por guia (turismo acessível em Natal/RN).
+# Nomes, slug e photo_url vêm de _seed_guide e são preservados; contato é FICTÍCIO
+# (e-mails @exemplo.com e telefones placeholder). translations EN/ES no formato lido por
+# /guides/{id}/translate (bio/short_bio) + specialties/languages/accessibility_focus.
 SEED_GUIDES = [
-    _seed_guide("Wallace", "wallace"),
-    _seed_guide("Gabriela", "gabriela"),
-    _seed_guide("Lilian", "lilian"),
-    _seed_guide("Wanessa", "wanessa"),
-    _seed_guide("Abrahão", "abrahao"),
+    {
+        **_seed_guide("Wallace", "wallace"),
+        "short_bio": "Guia vidente especializado em audiodescrição do patrimônio histórico de Natal.",
+        "bio": "Wallace é guia de turismo inclusivo certificado pelo programa Turismo que se Sente. Há seis anos conduz roteiros pelo centro histórico de Natal, traduzindo fortalezas, igrejas e becos em narrativas sensoriais. Acredita que todo visitante tem o direito de sentir a cidade, e não apenas de vê-la.",
+        "specialties": ["Patrimônio histórico", "Audiodescrição"],
+        "languages": ["Português", "Inglês", "Libras"],
+        "accessibility_focus": ["Deficiência visual"],
+        "certification_date": "2022-06-15",
+        "phone": "(84) 90000-0001",
+        "whatsapp": "(84) 90000-0001",
+        "email": "wallace@exemplo.com",
+        "instagram": "@wallace.exemplo",
+        "rating": 4.9,
+        "years_experience": 6,
+        "featured": True,
+        "translations": {
+            "en": {
+                "short_bio": "Sighted guide specialized in audio description of Natal's historic heritage.",
+                "bio": "Wallace is an inclusive tourism guide certified by the Turismo que se Sente program. For six years he has led tours through Natal's historic center, turning forts, churches and alleys into sensory narratives. He believes every visitor has the right to feel the city, not just to see it.",
+                "specialties": ["Historic heritage", "Audio description"],
+                "languages": ["Portuguese", "English", "Brazilian Sign Language"],
+                "accessibility_focus": ["Visual impairment"],
+            },
+            "es": {
+                "short_bio": "Guía vidente especializado en audiodescripción del patrimonio histórico de Natal.",
+                "bio": "Wallace es guía de turismo inclusivo certificado por el programa Turismo que se Sente. Desde hace seis años conduce recorridos por el centro histórico de Natal, convirtiendo fortalezas, iglesias y callejones en narrativas sensoriales. Cree que todo visitante tiene derecho a sentir la ciudad, y no solo a verla.",
+                "specialties": ["Patrimonio histórico", "Audiodescripción"],
+                "languages": ["Portugués", "Inglés", "Lengua de señas brasileña"],
+                "accessibility_focus": ["Discapacidad visual"],
+            },
+        },
+    },
+    {
+        **_seed_guide("Gabriela", "gabriela"),
+        "short_bio": "Especialista em mediação sensorial e experiências gastronômicas acessíveis.",
+        "bio": "Gabriela é guia certificada que une turismo e mediação sensorial. Conduz passeios em que aromas, texturas e sabores contam a história do litoral potiguar. Atua há quatro anos com foco em pessoas com deficiência visual e grupos neurodivergentes.",
+        "specialties": ["Mediação sensorial", "Gastronomia inclusiva"],
+        "languages": ["Português", "Espanhol"],
+        "accessibility_focus": ["Deficiência visual"],
+        "certification_date": "2023-03-10",
+        "phone": "(84) 90000-0002",
+        "whatsapp": "(84) 90000-0002",
+        "email": "gabriela@exemplo.com",
+        "instagram": "@gabriela.exemplo",
+        "rating": 5.0,
+        "years_experience": 4,
+        "featured": True,
+        "translations": {
+            "en": {
+                "short_bio": "Specialist in sensory mediation and accessible food experiences.",
+                "bio": "Gabriela is a certified guide who blends tourism and sensory mediation. She leads tours where aromas, textures and flavors tell the story of the Potiguar coast. She has worked for four years focusing on people with visual impairment and neurodivergent groups.",
+                "specialties": ["Sensory mediation", "Inclusive gastronomy"],
+                "languages": ["Portuguese", "Spanish"],
+                "accessibility_focus": ["Visual impairment"],
+            },
+            "es": {
+                "short_bio": "Especialista en mediación sensorial y experiencias gastronómicas accesibles.",
+                "bio": "Gabriela es guía certificada que une turismo y mediación sensorial. Conduce paseos donde aromas, texturas y sabores cuentan la historia del litoral potiguar. Trabaja desde hace cuatro años con foco en personas con discapacidad visual y grupos neurodivergentes.",
+                "specialties": ["Mediación sensorial", "Gastronomía inclusiva"],
+                "languages": ["Portugués", "Español"],
+                "accessibility_focus": ["Discapacidad visual"],
+            },
+        },
+    },
+    {
+        **_seed_guide("Lilian", "lilian"),
+        "short_bio": "Guia de praias acessíveis e hospitalidade inclusiva no litoral de Natal.",
+        "bio": "Lilian atua há três anos como guia de turismo inclusivo, com especialidade nas praias urbanas de Natal e em roteiros de hospitalidade acessível. Planeja cada passeio para que o cansaço nunca seja barreira, com pausas, descrições e ritmo respeitoso.",
+        "specialties": ["Hospitalidade inclusiva", "Praias acessíveis"],
+        "languages": ["Português", "Inglês"],
+        "accessibility_focus": ["Deficiência visual"],
+        "certification_date": "2024-02-28",
+        "phone": "(84) 90000-0003",
+        "whatsapp": "(84) 90000-0003",
+        "email": "lilian@exemplo.com",
+        "instagram": "@lilian.exemplo",
+        "rating": 4.8,
+        "years_experience": 3,
+        "featured": False,
+        "translations": {
+            "en": {
+                "short_bio": "Guide for accessible beaches and inclusive hospitality in Natal.",
+                "bio": "Lilian has worked for three years as an inclusive tourism guide, specializing in Natal's urban beaches and accessible hospitality itineraries. She plans every outing so that fatigue is never a barrier, with breaks, descriptions and a respectful pace.",
+                "specialties": ["Inclusive hospitality", "Accessible beaches"],
+                "languages": ["Portuguese", "English"],
+                "accessibility_focus": ["Visual impairment"],
+            },
+            "es": {
+                "short_bio": "Guía de playas accesibles y hospitalidad inclusiva en Natal.",
+                "bio": "Lilian trabaja desde hace tres años como guía de turismo inclusivo, especializada en las playas urbanas de Natal y en recorridos de hospitalidad accesible. Planifica cada paseo para que el cansancio nunca sea una barrera, con pausas, descripciones y un ritmo respetuoso.",
+                "specialties": ["Hospitalidad inclusiva", "Playas accesibles"],
+                "languages": ["Portugués", "Inglés"],
+                "accessibility_focus": ["Discapacidad visual"],
+            },
+        },
+    },
+    {
+        **_seed_guide("Wanessa", "wanessa"),
+        "short_bio": "Audiodescritora e contadora da cultura popular potiguar.",
+        "bio": "Wanessa é guia certificada e audiodescritora. Há dois anos apresenta a cultura popular do Rio Grande do Norte — do forró ao artesanato — em roteiros pensados para serem ouvidos, tocados e vividos. Também atende em Libras.",
+        "specialties": ["Audiodescrição", "Cultura popular"],
+        "languages": ["Português", "Libras"],
+        "accessibility_focus": ["Deficiência visual"],
+        "certification_date": "2024-09-05",
+        "phone": "(84) 90000-0004",
+        "whatsapp": "(84) 90000-0004",
+        "email": "wanessa@exemplo.com",
+        "instagram": "@wanessa.exemplo",
+        "rating": 4.7,
+        "years_experience": 2,
+        "featured": False,
+        "translations": {
+            "en": {
+                "short_bio": "Audio describer and storyteller of Potiguar popular culture.",
+                "bio": "Wanessa is a certified guide and audio describer. For two years she has presented the popular culture of Rio Grande do Norte — from forró to handicrafts — in itineraries designed to be heard, touched and lived. She also serves in Brazilian Sign Language.",
+                "specialties": ["Audio description", "Popular culture"],
+                "languages": ["Portuguese", "Brazilian Sign Language"],
+                "accessibility_focus": ["Visual impairment"],
+            },
+            "es": {
+                "short_bio": "Audiodescriptora y narradora de la cultura popular potiguar.",
+                "bio": "Wanessa es guía certificada y audiodescriptora. Desde hace dos años presenta la cultura popular de Rio Grande do Norte —del forró a la artesanía— en recorridos pensados para ser escuchados, tocados y vividos. También atiende en lengua de señas brasileña.",
+                "specialties": ["Audiodescripción", "Cultura popular"],
+                "languages": ["Portugués", "Lengua de señas brasileña"],
+                "accessibility_focus": ["Discapacidad visual"],
+            },
+        },
+    },
+    {
+        **_seed_guide("Abrahão", "abrahao"),
+        "short_bio": "Guia vidente especializado em ecoturismo acessível nas dunas e parques.",
+        "bio": "Abrahão é guia de turismo inclusivo há cinco anos, com paixão pelo ecoturismo. Leva os visitantes às dunas, ao Parque das Dunas e aos manguezais com descrições ricas e total atenção à segurança e à acessibilidade de cada trilha.",
+        "specialties": ["Guia vidente", "Ecoturismo acessível"],
+        "languages": ["Português", "Inglês", "Espanhol"],
+        "accessibility_focus": ["Deficiência visual"],
+        "certification_date": "2022-11-20",
+        "phone": "(84) 90000-0005",
+        "whatsapp": "(84) 90000-0005",
+        "email": "abrahao@exemplo.com",
+        "instagram": "@abrahao.exemplo",
+        "rating": 4.9,
+        "years_experience": 5,
+        "featured": False,
+        "translations": {
+            "en": {
+                "short_bio": "Sighted guide specialized in accessible ecotourism across dunes and parks.",
+                "bio": "Abrahão has been an inclusive tourism guide for five years, with a passion for ecotourism. He takes visitors to the dunes, Parque das Dunas and the mangroves with rich descriptions and full attention to the safety and accessibility of every trail.",
+                "specialties": ["Sighted guide", "Accessible ecotourism"],
+                "languages": ["Portuguese", "English", "Spanish"],
+                "accessibility_focus": ["Visual impairment"],
+            },
+            "es": {
+                "short_bio": "Guía vidente especializado en ecoturismo accesible por dunas y parques.",
+                "bio": "Abrahão es guía de turismo inclusivo desde hace cinco años, con pasión por el ecoturismo. Lleva a los visitantes a las dunas, al Parque das Dunas y a los manglares con descripciones ricas y total atención a la seguridad y la accesibilidad de cada sendero.",
+                "specialties": ["Guía vidente", "Ecoturismo accesible"],
+                "languages": ["Portugués", "Inglés", "Español"],
+                "accessibility_focus": ["Discapacidad visual"],
+            },
+        },
+    },
 ]
 
 
