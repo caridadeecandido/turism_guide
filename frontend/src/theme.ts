@@ -25,6 +25,7 @@ export const radii = {
   card: 16,
   pill: 999,
   button: 999,
+  input: 24,
   small: 8,
 } as const;
 
