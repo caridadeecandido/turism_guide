@@ -9,7 +9,6 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -19,7 +18,7 @@ import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
-import { useSpeakOnPress } from "@/src/accessibility";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 import { t } from "@/src/i18n";
 import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
 import { useSiteConfig } from "@/src/site-config";
@@ -41,17 +40,10 @@ const QUICK_ACCESS_ES = ["Playas", "Historia", "Parques", "Alojamiento", "Comida
 const normalize = (s: string) =>
   (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-// No web, segurar (long press) seleciona texto ou abre o menu de contexto do navegador.
-// Aplicamos este estilo aos itens audiodescritíveis para que o gesto de segurar dispare
-// só a fala, sem seleção nem callout. No nativo é null (sem efeito).
-const NO_SELECT_WEB =
-  Platform.OS === "web"
-    ? ({ userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as any)
-    : null;
-
 export default function Home() {
   const { user, signOut, language, setLanguage } = useAuth();
   const { config } = useSiteConfig();
+  const speakOnPress = useSpeakOnPress();
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -232,8 +224,9 @@ export default function Home() {
           {QUICK_ACCESS.map((q, idx) => (
             <TouchableOpacity
               key={q.key}
-              style={styles.quickCard}
+              style={[styles.quickCard, NO_SELECT_WEB]}
               onPress={() => router.push(`/near?category=${encodeURIComponent(q.key)}` as any)}
+              onLongPress={() => speakOnPress(labels ? labels[idx] : q.labelKey)}
               accessibilityRole="button"
               accessibilityLabel={`Ver atrativos da categoria ${labels ? labels[idx] : q.labelKey}`}
               testID={`quick-${q.key}`}

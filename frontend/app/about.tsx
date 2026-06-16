@@ -17,6 +17,8 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { useAuth } from "@/src/auth-context";
 import { useSiteConfig, localizedField } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 type Lang = "pt" | "en" | "es";
 
@@ -77,6 +79,7 @@ const LABELS = {
 export default function About() {
   const { language } = useAuth();
   const { config } = useSiteConfig();
+  const speakOnPress = useSpeakOnPress();
   const lang = (language as Lang) || "pt";
   const L = LABELS[lang];
 
@@ -101,7 +104,7 @@ export default function About() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.headerTitle}>{L.title}</Text>
+        <SpeakableText accessibilityRole="header" style={styles.headerTitle}>{L.title}</SpeakableText>
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
@@ -118,8 +121,8 @@ export default function About() {
             />
             <View style={styles.heroOverlay}>
               <SealCircle size={64} style={styles.heroSeal} />
-              <Text accessibilityRole="header" style={styles.heroTitle}>{config.app_name}</Text>
-              <Text style={styles.heroSub}>{localizedField(config, "header_banner_subtitle", lang)}</Text>
+              <SpeakableText accessibilityRole="header" style={styles.heroTitle}>{config.app_name}</SpeakableText>
+              <SpeakableText style={styles.heroSub}>{localizedField(config, "header_banner_subtitle", lang)}</SpeakableText>
             </View>
           </View>
         )}
@@ -129,9 +132,9 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="information-circle" size={20} color={colors.brand} />
-              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.aboutTitle}</Text>
+              <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{L.aboutTitle}</SpeakableText>
             </View>
-            <Text style={styles.bodyText}>{aboutText}</Text>
+            <SpeakableText style={styles.bodyText}>{aboutText}</SpeakableText>
           </View>
         )}
 
@@ -142,18 +145,18 @@ export default function About() {
               <View style={[styles.miniCard, { borderLeftColor: colors.brand }]}>
                 <View style={styles.miniHeader}>
                   <Ionicons name="flag" size={18} color={colors.brand} />
-                  <Text accessibilityRole="header" style={styles.miniTitle}>{L.mission}</Text>
+                  <SpeakableText accessibilityRole="header" style={styles.miniTitle}>{L.mission}</SpeakableText>
                 </View>
-                <Text style={styles.miniBody}>{missionText}</Text>
+                <SpeakableText style={styles.miniBody}>{missionText}</SpeakableText>
               </View>
             )}
             {!!visionText && (
               <View style={[styles.miniCard, { borderLeftColor: "#F59E0B" }]}>
                 <View style={styles.miniHeader}>
                   <Ionicons name="eye" size={18} color="#F59E0B" />
-                  <Text accessibilityRole="header" style={styles.miniTitle}>{L.vision}</Text>
+                  <SpeakableText accessibilityRole="header" style={styles.miniTitle}>{L.vision}</SpeakableText>
                 </View>
-                <Text style={styles.miniBody}>{visionText}</Text>
+                <SpeakableText style={styles.miniBody}>{visionText}</SpeakableText>
               </View>
             )}
           </View>
@@ -163,7 +166,7 @@ export default function About() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialCommunityIcons name="hand-heart" size={20} color={colors.brand} />
-            <Text accessibilityRole="header" style={styles.sectionTitle}>{L.pillars}</Text>
+            <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{L.pillars}</SpeakableText>
           </View>
           <View style={styles.pillarsGrid}>
             {L.pillarsList.map((p) => (
@@ -171,8 +174,8 @@ export default function About() {
                 <View style={styles.pillarIconWrap}>
                   <Ionicons name={p.icon as any} size={22} color={colors.brand} />
                 </View>
-                <Text style={styles.pillarTitle}>{p.title}</Text>
-                <Text style={styles.pillarDesc}>{p.desc}</Text>
+                <SpeakableText style={styles.pillarTitle} speakText={`${p.title}. ${p.desc}`}>{p.title}</SpeakableText>
+                <SpeakableText style={styles.pillarDesc} speakText={`${p.title}. ${p.desc}`}>{p.desc}</SpeakableText>
               </View>
             ))}
           </View>
@@ -182,7 +185,7 @@ export default function About() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="call" size={20} color={colors.brand} />
-            <Text accessibilityRole="header" style={styles.sectionTitle}>{L.contact}</Text>
+            <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{L.contact}</SpeakableText>
           </View>
 
           {!!config.contact_email && (
@@ -229,7 +232,7 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="share-social" size={20} color={colors.brand} />
-              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.follow}</Text>
+              <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{L.follow}</SpeakableText>
             </View>
             <View style={styles.socialGrid}>
               {!!config.instagram && (
@@ -291,7 +294,7 @@ export default function About() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="school" size={20} color={colors.brand} />
-              <Text accessibilityRole="header" style={styles.sectionTitle}>{L.promoters}</Text>
+              <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{L.promoters}</SpeakableText>
             </View>
             <View style={styles.promotersRow}>
               {config.promoter_names.map((name, i) => (
@@ -323,11 +326,13 @@ function ContactRow({
   icon: any; label: string; value: string;
   onPress?: () => void; tint?: string; multiline?: boolean; testID?: string;
 }) {
+  const speakOnPress = useSpeakOnPress();
   const Wrap: any = onPress ? TouchableOpacity : View;
   return (
     <Wrap
-      style={styles.contactRow}
+      style={[styles.contactRow, NO_SELECT_WEB]}
       onPress={onPress}
+      onLongPress={() => speakOnPress(`${label}: ${value}`)}
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={`${label}: ${value}`}
       testID={testID}
@@ -350,10 +355,12 @@ function SocialBtn({
   icon: any; color: string; label: string; handle: string;
   onPress: () => void; testID?: string;
 }) {
+  const speakOnPress = useSpeakOnPress();
   return (
     <TouchableOpacity
-      style={styles.socialBtn}
+      style={[styles.socialBtn, NO_SELECT_WEB]}
       onPress={onPress}
+      onLongPress={() => speakOnPress(`${label} ${handle}`)}
       accessibilityRole="button"
       accessibilityLabel={`${label} ${handle}`}
       testID={testID}

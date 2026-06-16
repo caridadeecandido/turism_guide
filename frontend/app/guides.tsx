@@ -15,11 +15,17 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Guide } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function GuidesList() {
   const { config } = useSiteConfig();
+  const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
   const [specialties, setSpecialties] = useState<string[]>(["Todos"]);
@@ -64,8 +70,8 @@ export default function GuidesList() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.title}>Guias Certificados</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
+        <SpeakableText accessibilityRole="header" style={styles.title}>{t(language, "guides_title")}</SpeakableText>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel={t(language, "seal_about_btn")} testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
@@ -75,10 +81,10 @@ export default function GuidesList() {
           <View style={styles.heroIconWrap}>
             <SealCircle size={72} />
           </View>
-          <Text accessibilityRole="header" style={styles.heroTitle}>Guias com Selo Categoria Ouro</Text>
-          <Text style={styles.heroSub}>
-            Profissionais capacitados no Curso Turismo que se Sente (120h) — especialistas em audiodescrição, Libras, atendimento a PCD e neurodivergentes.
-          </Text>
+          <SpeakableText accessibilityRole="header" style={styles.heroTitle}>{t(language, "guides_hero_title")}</SpeakableText>
+          <SpeakableText style={styles.heroSub}>
+            {t(language, "guides_hero_sub")}
+          </SpeakableText>
         </View>
 
         {/* Specialty chips */}
@@ -91,7 +97,8 @@ export default function GuidesList() {
             <TouchableOpacity
               key={s}
               onPress={() => setActiveSpec(s)}
-              style={[styles.chip, activeSpec === s && styles.chipActive]}
+              onLongPress={() => speakOnPress(s)}
+              style={[styles.chip, activeSpec === s && styles.chipActive, NO_SELECT_WEB]}
               accessibilityRole="button"
               accessibilityState={{ selected: activeSpec === s }}
               accessibilityLabel={`Filtrar guias por especialidade: ${s}`}
@@ -110,20 +117,22 @@ export default function GuidesList() {
         >
           <TouchableOpacity
             onPress={() => setActiveFocus(null)}
-            style={[styles.chipSm, !activeFocus && styles.chipActive]}
+            onLongPress={() => speakOnPress(t(language, "guides_all_access"))}
+            style={[styles.chipSm, !activeFocus && styles.chipActive, NO_SELECT_WEB]}
             accessibilityRole="button"
             accessibilityState={{ selected: !activeFocus }}
             accessibilityLabel="Mostrar guias de todas as acessibilidades"
             testID="focus-all"
           >
             <Ionicons name="accessibility" size={12} color={!activeFocus ? "#fff" : colors.brand} />
-            <Text style={[styles.chipSmText, !activeFocus && styles.chipTextActive]}>Todas acessibilidades</Text>
+            <Text style={[styles.chipSmText, !activeFocus && styles.chipTextActive]}>{t(language, "guides_all_access")}</Text>
           </TouchableOpacity>
           {focusFilters.map((f) => (
             <TouchableOpacity
               key={f}
               onPress={() => setActiveFocus(f === activeFocus ? null : f)}
-              style={[styles.chipSm, activeFocus === f && styles.chipActive]}
+              onLongPress={() => speakOnPress(f)}
+              style={[styles.chipSm, activeFocus === f && styles.chipActive, NO_SELECT_WEB]}
               accessibilityRole="button"
               accessibilityState={{ selected: activeFocus === f }}
               accessibilityLabel={`Filtrar guias por acessibilidade: ${f}`}
@@ -139,7 +148,7 @@ export default function GuidesList() {
         ) : guides.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="person-outline" size={48} color={colors.textMuted} />
-            <Text style={styles.emptyText}>Nenhum guia encontrado com esses filtros.</Text>
+            <Text style={styles.emptyText}>{t(language, "guides_empty")}</Text>
           </View>
         ) : (
           guides.map((g) => <GuideCard key={g.id} guide={g} />)
@@ -153,10 +162,12 @@ export default function GuidesList() {
 }
 
 function GuideCard({ guide }: { guide: Guide }) {
+  const speakOnPress = useSpeakOnPress();
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, NO_SELECT_WEB]}
       onPress={() => router.push(`/guide/${guide.id}`)}
+      onLongPress={() => speakOnPress(guide.name)}
       accessibilityRole="button"
       accessibilityLabel={`Ver perfil de ${guide.name}, ${guide.short_bio}`}
       testID={`guide-card-${guide.id}`}

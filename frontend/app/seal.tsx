@@ -13,13 +13,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
-import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
+import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api } from "@/src/api";
-import { useSiteConfig } from "@/src/site-config";
-import { SealFooter } from "@/src/components/SealBranding";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
+import { useSiteConfig, localizedField } from "@/src/site-config";
+import { SealFooter, SealCircle } from "@/src/components/SealBranding";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function Seal() {
   const { config } = useSiteConfig();
+  const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -47,28 +53,26 @@ export default function Seal() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.title}>Selo Digital</Text>
+        <SpeakableText accessibilityRole="header" style={styles.title}>{t(language, "seal_title")}</SpeakableText>
         <View style={styles.iconBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.seal}>
-          <View style={styles.sealRing}>
-            <Ionicons name="ribbon" size={48} color={colors.brand} />
-          </View>
-          <Text accessibilityRole="header" style={styles.sealName}>Turismo que se Sente</Text>
-          <Text style={styles.sealTag}>Certificação de Acessibilidade</Text>
+          <SealCircle size={120} style={styles.sealRing} />
+          <SpeakableText accessibilityRole="header" style={styles.sealName}>{config.app_name}</SpeakableText>
+          <SpeakableText style={styles.sealTag}>{t(language, "seal_cert_subtitle")}</SpeakableText>
         </View>
 
-        <Text style={styles.intro}>
-          O Selo Turismo que se Sente certifica estabelecimentos que oferecem experiências verdadeiramente acessíveis a pessoas com deficiência visual, com foco em mediação sensorial e atendimento inclusivo.
-        </Text>
+        <SpeakableText style={styles.intro}>
+          {t(language, "seal_intro")}
+        </SpeakableText>
 
         <View style={styles.card}>
-          <Text accessibilityRole="header" style={styles.cardTitle}>Verificar selo de um parceiro</Text>
-          <Text style={styles.cardHint}>
-            Digite o código do selo do estabelecimento ou escaneie o QR code na fachada / cardápio.
-          </Text>
+          <SpeakableText accessibilityRole="header" style={styles.cardTitle}>{t(language, "seal_verify_title")}</SpeakableText>
+          <SpeakableText style={styles.cardHint}>
+            {t(language, "seal_verify_hint")}
+          </SpeakableText>
           <TextInput
             style={styles.input}
             value={code}
@@ -80,8 +84,9 @@ export default function Seal() {
             testID="seal-code-input"
           />
           <TouchableOpacity
-            style={styles.verifyBtn}
+            style={[styles.verifyBtn, NO_SELECT_WEB]}
             onPress={verify}
+            onLongPress={() => speakOnPress(t(language, "seal_verify_btn"))}
             disabled={loading || !code.trim()}
             accessibilityRole="button"
             accessibilityLabel="Verificar selo do parceiro"
@@ -92,7 +97,7 @@ export default function Seal() {
             ) : (
               <>
                 <Ionicons name="shield-checkmark" size={18} color="#fff" />
-                <Text style={styles.verifyText}>Verificar selo</Text>
+                <Text style={styles.verifyText}>{t(language, "seal_verify_btn")}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -118,8 +123,9 @@ export default function Seal() {
             <Text style={styles.resultMessage}>{result.message}</Text>
             {result.valid && result.partner && (
               <TouchableOpacity
-                style={styles.viewPartnerBtn}
+                style={[styles.viewPartnerBtn, NO_SELECT_WEB]}
                 onPress={() => router.replace(`/partner/${result.partner.id}`)}
+                onLongPress={() => speakOnPress(result.partner.name)}
                 accessibilityRole="button"
                 accessibilityLabel={`Ver detalhes do parceiro ${result.partner.name}`}
                 testID="view-partner-button"
@@ -131,7 +137,7 @@ export default function Seal() {
         )}
 
         <View style={styles.criteria}>
-          <Text accessibilityRole="header" style={styles.criteriaTitle}>Critérios da certificação</Text>
+          <SpeakableText accessibilityRole="header" style={styles.criteriaTitle}>{t(language, "seal_criteria_title")}</SpeakableText>
           {[
             "Equipe treinada em mediação sensorial e audiodescrição",
             "Materiais informativos em braille e/ou audio",

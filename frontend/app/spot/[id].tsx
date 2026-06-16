@@ -18,6 +18,8 @@ import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { t } from "@/src/i18n";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 type Translated = {
   name: string;
@@ -29,6 +31,7 @@ type Translated = {
 export default function SpotDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, language, isFavorite, toggleFavorite } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [spot, setSpot] = useState<TouristSpot | null>(null);
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<Translated | null>(null);
@@ -111,7 +114,7 @@ export default function SpotDetail() {
           </SafeAreaView>
           <View style={styles.heroBottom}>
             <Text style={styles.heroCategory}>{spot.category}</Text>
-            <Text accessibilityRole="header" style={styles.heroTitle} testID="spot-title">{view.name}</Text>
+            <SpeakableText accessibilityRole="header" style={styles.heroTitle} testID="spot-title">{view.name}</SpeakableText>
             <View style={styles.row}>
               <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
               <Text style={styles.heroLocation}>{spot.neighborhood}, Natal – RN</Text>
@@ -144,13 +147,14 @@ export default function SpotDetail() {
         </View>
 
         <View style={styles.section}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "about")}</Text>
-          <Text style={styles.description}>{view.full_description}</Text>
+          <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{t(language, "about")}</SpeakableText>
+          <SpeakableText style={styles.description}>{view.full_description}</SpeakableText>
         </View>
 
         <TouchableOpacity
-          style={styles.audioCta}
+          style={[styles.audioCta, NO_SELECT_WEB]}
           onPress={() => router.push(`/audio/${spot.id}`)}
+          onLongPress={() => speakOnPress(t(language, "listen_audio"))}
           accessibilityRole="button"
           accessibilityLabel={`Ouvir audiodescrição sensorial de ${view.name}`}
           testID="listen-audio-button"
@@ -168,7 +172,7 @@ export default function SpotDetail() {
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "accessibility_info")}</Text>
+          <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{t(language, "accessibility_info")}</SpeakableText>
           {spot.accessibility_features.map((f, idx) => (
             <View key={idx} style={styles.featureRow}>
               <View style={styles.featureIcon}>
@@ -180,10 +184,10 @@ export default function SpotDetail() {
         </View>
 
         <View style={styles.section}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>{t(language, "address")}</Text>
+          <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{t(language, "address")}</SpeakableText>
           <View style={styles.addressBox}>
             <Ionicons name="location" size={20} color={colors.brand} />
-            <Text style={styles.addressText}>{spot.address}</Text>
+            <SpeakableText style={styles.addressText}>{spot.address}</SpeakableText>
           </View>
           {spot.latitude && spot.longitude && (
             <TouchableOpacity

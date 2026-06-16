@@ -17,9 +17,15 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { getCurrentCoords } from "@/src/geo";
 import { useSiteConfig } from "@/src/site-config";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function Emergency() {
   const { config } = useSiteConfig();
+  const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const SERVICES = [
@@ -78,7 +84,7 @@ export default function Emergency() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.title}>Emergência</Text>
+        <SpeakableText accessibilityRole="header" style={styles.title}>{t(language, "emergency")}</SpeakableText>
         <View style={styles.iconBtn} />
       </View>
 
@@ -87,18 +93,19 @@ export default function Emergency() {
           <View style={styles.heroIcon}>
             <Ionicons name="warning" size={36} color={colors.error} />
           </View>
-          <Text accessibilityRole="header" style={styles.heroTitle}>Você está em segurança?</Text>
-          <Text style={styles.heroSubtitle}>
-            Toque para ligar diretamente para os serviços de emergência ou compartilhar sua localização.
-          </Text>
+          <SpeakableText accessibilityRole="header" style={styles.heroTitle}>{t(language, "emergency_hero_title")}</SpeakableText>
+          <SpeakableText style={styles.heroSubtitle}>
+            {t(language, "emergency_hero_sub")}
+          </SpeakableText>
         </View>
 
-        <Text accessibilityRole="header" style={styles.sectionTitle}>Serviços de emergência</Text>
+        <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{t(language, "emergency_services")}</SpeakableText>
         {SERVICES.map((s) => (
           <TouchableOpacity
             key={s.number}
-            style={styles.service}
+            style={[styles.service, NO_SELECT_WEB]}
             onPress={() => call(s)}
+            onLongPress={() => speakOnPress(`${s.name}, ${s.number}`)}
             accessibilityLabel={`Ligar para ${s.name} no número ${s.number}`}
             testID={`call-${s.number}`}
           >
@@ -116,7 +123,7 @@ export default function Emergency() {
           </TouchableOpacity>
         ))}
 
-        <Text accessibilityRole="header" style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Compartilhar localização</Text>
+        <SpeakableText accessibilityRole="header" style={[styles.sectionTitle, { marginTop: spacing.lg }]}>{t(language, "emergency_share")}</SpeakableText>
         <View style={styles.coordsBox}>
           <MaterialCommunityIcons name="map-marker-radius" size={18} color={colors.brand} />
           <Text style={styles.coordsText}>

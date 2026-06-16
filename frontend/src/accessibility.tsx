@@ -7,6 +7,15 @@ import { ttsLocale } from "@/src/i18n";
 
 const KEY = "tqss_a11y_prefs";
 
+// No web, SEGURAR (long press) seleciona texto ou abre o menu de contexto do navegador.
+// Aplique este estilo aos elementos audiodescritíveis para que o gesto de segurar dispare
+// só a fala, sem seleção nem callout. No nativo é null (sem efeito). Fonte única reusada
+// por toda a app (home, SpeakableText, telas da fase 3B).
+export const NO_SELECT_WEB =
+  Platform.OS === "web"
+    ? ({ userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as any)
+    : null;
+
 export type A11yPrefs = {
   // Audiodescrição ao tocar: lê o conteúdo em voz alta ao tocar (controlada pelo toggle).
   speakOnTouch: boolean;

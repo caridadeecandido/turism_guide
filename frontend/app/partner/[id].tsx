@@ -23,10 +23,13 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function PartnerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -135,7 +138,7 @@ export default function PartnerDetail() {
             </SafeAreaView>
             <View style={styles.heroBottom}>
               <Text style={styles.heroCat}>{partner.category.toUpperCase()}</Text>
-              <Text accessibilityRole="header" style={styles.heroTitle}>{partner.name}</Text>
+              <SpeakableText accessibilityRole="header" style={styles.heroTitle}>{partner.name}</SpeakableText>
               <View style={styles.locationRow}>
                 <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
                 <Text style={styles.location}>{partner.neighborhood}, Natal – RN</Text>
@@ -197,18 +200,18 @@ export default function PartnerDetail() {
             <Text accessibilityRole="header" style={styles.sectionTitle}>Contato</Text>
             <View style={styles.contactRow}>
               {partner.whatsapp && (
-                <TouchableOpacity style={[styles.contactBtn, { backgroundColor: "#25D366" }]} onPress={openWhatsapp} accessibilityRole="button" accessibilityLabel={`Conversar pelo WhatsApp com ${partner.name}`} testID="whatsapp-button">
+                <TouchableOpacity style={[styles.contactBtn, { backgroundColor: "#25D366" }, NO_SELECT_WEB]} onPress={openWhatsapp} onLongPress={() => speakOnPress(partner.name)} accessibilityRole="button" accessibilityLabel={`Conversar pelo WhatsApp com ${partner.name}`} testID="whatsapp-button">
                   <Ionicons name="logo-whatsapp" size={18} color="#fff" />
                   <Text style={styles.contactText}>WhatsApp</Text>
                 </TouchableOpacity>
               )}
               {partner.phone && (
-                <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`tel:${partner.phone}`)} accessibilityRole="button" accessibilityLabel={`Ligar para ${partner.name}`} testID="phone-button">
+                <TouchableOpacity style={[styles.contactBtn, NO_SELECT_WEB]} onPress={() => Linking.openURL(`tel:${partner.phone}`)} onLongPress={() => speakOnPress(partner.name)} accessibilityRole="button" accessibilityLabel={`Ligar para ${partner.name}`} testID="phone-button">
                   <Ionicons name="call" size={18} color="#fff" />
                   <Text style={styles.contactText}>Ligar</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL(`mailto:${partner.email}`)} accessibilityRole="button" accessibilityLabel={`Enviar e-mail para ${partner.name}`} testID="email-button">
+              <TouchableOpacity style={[styles.contactBtn, NO_SELECT_WEB]} onPress={() => Linking.openURL(`mailto:${partner.email}`)} onLongPress={() => speakOnPress(partner.name)} accessibilityRole="button" accessibilityLabel={`Enviar e-mail para ${partner.name}`} testID="email-button">
                 <Ionicons name="mail" size={18} color="#fff" />
                 <Text style={styles.contactText}>E-mail</Text>
               </TouchableOpacity>
@@ -271,8 +274,9 @@ export default function PartnerDetail() {
             <Text style={styles.priceValue}>{partner.price_from || "Sob consulta"}</Text>
           </View>
           <TouchableOpacity
-            style={styles.reserveBtn}
+            style={[styles.reserveBtn, NO_SELECT_WEB]}
             onPress={() => setShowForm(true)}
+            onLongPress={() => speakOnPress(partner.name)}
             accessibilityRole="button"
             accessibilityLabel={`Reservar ${partner.name}`}
             testID="reserve-button"

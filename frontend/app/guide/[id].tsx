@@ -22,11 +22,14 @@ import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { useSiteConfig, localizedField } from "@/src/site-config";
 import { SealFooter, SealCircle } from "@/src/components/SealBranding";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function GuideDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, language } = useAuth();
   const { config } = useSiteConfig();
+  const speakOnPress = useSpeakOnPress();
 
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,7 +199,7 @@ export default function GuideDetail() {
               </View>
             )}
           </View>
-          <Text accessibilityRole="header" style={styles.name}>{guide.name}</Text>
+          <SpeakableText accessibilityRole="header" style={styles.name}>{guide.name}</SpeakableText>
           <View style={styles.row}>
             <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.region}>{guide.region}</Text>
@@ -212,15 +215,16 @@ export default function GuideDetail() {
               <Text style={styles.langPillText}>{language === "en" ? "English" : "Español"}</Text>
             </View>
           )}
-          <Text style={styles.shortBio}>{shortText}</Text>
+          <SpeakableText style={styles.shortBio}>{shortText}</SpeakableText>
         </View>
 
         {/* Contact actions */}
         <View style={styles.contactGrid}>
           {!!guide.whatsapp && (
             <TouchableOpacity
-              style={[styles.contactBtn, { backgroundColor: "#25D366" }]}
+              style={[styles.contactBtn, { backgroundColor: "#25D366" }, NO_SELECT_WEB]}
               onPress={() => handleWhatsapp(guide.whatsapp)}
+              onLongPress={() => speakOnPress(guide.name)}
               accessibilityLabel={`Conversar pelo WhatsApp com ${guide.name}`}
               testID="whatsapp-btn"
             >
@@ -230,8 +234,9 @@ export default function GuideDetail() {
           )}
           {!!guide.phone && (
             <TouchableOpacity
-              style={[styles.contactBtn, { backgroundColor: colors.brand }]}
+              style={[styles.contactBtn, { backgroundColor: colors.brand }, NO_SELECT_WEB]}
               onPress={() => handlePhone(guide.phone)}
+              onLongPress={() => speakOnPress(guide.name)}
               accessibilityLabel={`Ligar para ${guide.name}`}
               testID="phone-btn"
             >
@@ -241,8 +246,9 @@ export default function GuideDetail() {
           )}
           {!!guide.email && (
             <TouchableOpacity
-              style={[styles.contactBtn, { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border }]}
+              style={[styles.contactBtn, { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border }, NO_SELECT_WEB]}
               onPress={() => handleEmail(guide.email)}
+              onLongPress={() => speakOnPress(guide.name)}
               accessibilityLabel={`Enviar e-mail para ${guide.name}`}
               testID="email-btn"
             >
@@ -252,8 +258,9 @@ export default function GuideDetail() {
           )}
           {!!guide.instagram && (
             <TouchableOpacity
-              style={[styles.contactBtn, { backgroundColor: "#E1306C" }]}
+              style={[styles.contactBtn, { backgroundColor: "#E1306C" }, NO_SELECT_WEB]}
               onPress={() => handleInstagram(guide.instagram)}
+              onLongPress={() => speakOnPress(guide.name)}
               accessibilityLabel={`Abrir Instagram de ${guide.name}`}
               testID="instagram-btn"
             >
@@ -318,14 +325,15 @@ export default function GuideDetail() {
         {/* Bio */}
         {!!bioText && (
           <Section title="Sobre o guia" icon="person-outline">
-            <Text style={styles.bioText}>{bioText}</Text>
+            <SpeakableText style={styles.bioText}>{bioText}</SpeakableText>
           </Section>
         )}
 
         {/* Inquiry CTA */}
         <TouchableOpacity
-          style={styles.cta}
+          style={[styles.cta, NO_SELECT_WEB]}
           onPress={() => setShowInquiry((v) => !v)}
+          onLongPress={() => speakOnPress(guide.name)}
           accessibilityRole="button"
           accessibilityLabel={showInquiry ? "Cancelar solicitação de contato" : `Solicitar contato com ${guide.name}`}
           testID="open-inquiry-btn"

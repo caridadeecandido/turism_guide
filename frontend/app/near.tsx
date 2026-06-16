@@ -16,9 +16,15 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { getCurrentCoords, distanceKm, NATAL_CENTER, formatDistance } from "@/src/geo";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function NearMe() {
   const params = useLocalSearchParams<{ category?: string }>();
+  const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [spots, setSpots] = useState<TouristSpot[]>([]);
   const [categories, setCategories] = useState<string[]>(["Todos"]);
   const [activeCategory, setActiveCategory] = useState<string>(params.category || "Todos");
@@ -70,14 +76,14 @@ export default function NearMe() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.headerTitle}>Perto de mim</Text>
+        <SpeakableText accessibilityRole="header" style={styles.headerTitle}>{t(language, "near_me")}</SpeakableText>
         <View style={styles.iconBtn} />
       </View>
 
       {coords && (
         <View style={styles.locBox}>
           <Ionicons name="navigate" size={14} color={colors.success} />
-          <Text style={styles.locText}>Localização ativa</Text>
+          <Text style={styles.locText}>{t(language, "near_active_location")}</Text>
         </View>
       )}
 
@@ -93,7 +99,8 @@ export default function NearMe() {
             <TouchableOpacity
               key={cat}
               onPress={() => setActiveCategory(cat)}
-              style={[styles.filterChip, active && styles.filterChipActive]}
+              onLongPress={() => speakOnPress(cat)}
+              style={[styles.filterChip, active && styles.filterChipActive, NO_SELECT_WEB]}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               accessibilityLabel={`Filtrar por categoria: ${cat}`}
@@ -110,15 +117,16 @@ export default function NearMe() {
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
           {enriched.length === 0 && (
-            <Text style={styles.emptyText}>Nenhum ponto encontrado nesta categoria.</Text>
+            <Text style={styles.emptyText}>{t(language, "near_empty")}</Text>
           )}
           {enriched.map((spot) => (
             <TouchableOpacity
               key={spot.id}
-              style={styles.card}
+              style={[styles.card, NO_SELECT_WEB]}
               onPress={() => router.push(`/spot/${spot.id}`)}
+              onLongPress={() => speakOnPress(spot.translations?.[language]?.name || spot.name)}
               accessibilityRole="button"
-              accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${formatDistance(spot._live_distance)}. Toque para ver detalhes e audiodescrição.`}
+              accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${formatDistance(spot._live_distance)}. Toque para ver detalhes; segure para ouvir o nome.`}
               testID={`spot-${spot.id}`}
             >
               <Image
@@ -156,8 +164,9 @@ export default function NearMe() {
       )}
 
       <TouchableOpacity
-        style={styles.updateBtn}
+        style={[styles.updateBtn, NO_SELECT_WEB]}
         onPress={refreshLocation}
+        onLongPress={() => speakOnPress(coords ? t(language, "update_location_short") : t(language, "activate_location"))}
         disabled={locating}
         accessibilityRole="button"
         accessibilityLabel={coords ? "Atualizar minha localização" : "Ativar minha localização"}
@@ -169,7 +178,7 @@ export default function NearMe() {
           <>
             <Ionicons name="locate" size={20} color="#fff" />
             <Text style={styles.updateText}>
-              {coords ? "Atualizar localização" : "Ativar minha localização"}
+              {coords ? t(language, "update_location_short") : t(language, "activate_location")}
             </Text>
           </>
         )}

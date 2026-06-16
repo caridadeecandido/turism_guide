@@ -15,10 +15,16 @@ import { router } from "expo-router";
 import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, Partner } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
+import { useAuth } from "@/src/auth-context";
+import { t } from "@/src/i18n";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 const CATEGORIES = ["Todos", "Hospedagem", "Alimentação", "Passeio"];
 
 export default function Marketplace() {
+  const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("Todos");
@@ -42,17 +48,17 @@ export default function Marketplace() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.title}>Parceiros Acessíveis</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel="Sobre o selo Categoria Ouro" testID="open-seal-button">
+        <SpeakableText accessibilityRole="header" style={styles.title}>{t(language, "partners_title")}</SpeakableText>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/seal")} accessibilityRole="button" accessibilityLabel={t(language, "seal_about_btn")} testID="open-seal-button">
           <Ionicons name="ribbon" size={22} color={colors.brand} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.hero}>
-        <Text accessibilityRole="header" style={styles.heroTitle}>Hotéis · Restaurantes · Passeios</Text>
-        <Text style={styles.heroSubtitle}>
-          Estabelecimentos certificados pelo selo Turismo que se Sente.
-        </Text>
+        <SpeakableText accessibilityRole="header" style={styles.heroTitle}>{t(language, "partners_hero_title")}</SpeakableText>
+        <SpeakableText style={styles.heroSubtitle}>
+          {t(language, "partners_hero_sub")}
+        </SpeakableText>
       </View>
 
       <ScrollView
@@ -67,7 +73,8 @@ export default function Marketplace() {
             <TouchableOpacity
               key={c}
               onPress={() => setActive(c)}
-              style={[styles.chip, isActive && styles.chipActive]}
+              onLongPress={() => speakOnPress(c)}
+              style={[styles.chip, isActive && styles.chipActive, NO_SELECT_WEB]}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={`Filtrar parceiros por categoria: ${c}`}
@@ -84,15 +91,16 @@ export default function Marketplace() {
       ) : (
         <ScrollView contentContainerStyle={styles.list}>
           {partners.length === 0 && (
-            <Text style={styles.empty}>Nenhum parceiro encontrado.</Text>
+            <Text style={styles.empty}>{t(language, "partners_empty")}</Text>
           )}
           {partners.map((p) => (
             <TouchableOpacity
               key={p.id}
-              style={styles.card}
+              style={[styles.card, NO_SELECT_WEB]}
               onPress={() => router.push(`/partner/${p.id}`)}
+              onLongPress={() => speakOnPress(p.name)}
               accessibilityRole="button"
-              accessibilityLabel={`${p.name}, ${p.category}${p.has_seal ? ", parceiro certificado" : ""}. ${p.short_description}. ${p.price_from ? `A partir de ${p.price_from}. ` : ""}Toque para ver detalhes e reservar.`}
+              accessibilityLabel={`${p.name}, ${p.category}${p.has_seal ? ", parceiro certificado" : ""}. ${p.short_description}. ${p.price_from ? `A partir de ${p.price_from}. ` : ""}Toque para ver detalhes; segure para ouvir o nome.`}
               testID={`partner-${p.id}`}
             >
               <Image
@@ -106,7 +114,7 @@ export default function Marketplace() {
                   {p.has_seal && (
                     <View style={styles.sealPill}>
                       <Ionicons name="ribbon" size={11} color={colors.brand} />
-                      <Text style={styles.sealText}>Certificado</Text>
+                      <Text style={styles.sealText}>{t(language, "certified")}</Text>
                     </View>
                   )}
                 </View>
@@ -123,7 +131,7 @@ export default function Marketplace() {
                 <View style={styles.bottomRow}>
                   <Text style={styles.price}>{p.price_from}</Text>
                   <View style={styles.cta}>
-                    <Text style={styles.ctaText}>Reservar</Text>
+                    <Text style={styles.ctaText}>{t(language, "reserve")}</Text>
                     <Ionicons name="chevron-forward" size={14} color={colors.brand} />
                   </View>
                 </View>

@@ -16,12 +16,15 @@ import { router } from "expo-router";
 
 import { colors, fontSizes, radii, spacing, LOGO_URL } from "@/src/theme";
 import { useAuth } from "@/src/auth-context";
-import { useA11y } from "@/src/accessibility";
+import { t } from "@/src/i18n";
+import { useA11y, useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 import { SealFooter } from "@/src/components/SealBranding";
+import { SpeakableText } from "@/src/components/SpeakableText";
 
 export default function Menu() {
   const { user, signIn, signOut, language, setLanguage } = useAuth();
   const { prefs, set } = useA11y();
+  const speakOnPress = useSpeakOnPress();
 
   const confirmLogout = () => {
     const cb = () => signOut();
@@ -41,7 +44,7 @@ export default function Menu() {
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar" testID="back-button">
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.headerTitle}>Menu</Text>
+        <SpeakableText accessibilityRole="header" style={styles.headerTitle}>{t(language, "menu_title")}</SpeakableText>
         <View style={styles.iconBtn} />
       </View>
 
@@ -69,23 +72,24 @@ export default function Menu() {
           ) : (
             <>
               <Image source={{ uri: LOGO_URL }} style={styles.logo} resizeMode="contain" accessibilityLabel="Logo Turismo que se Sente" />
-              <Text style={styles.greeting}>Olá! Vamos explorar Natal juntos.</Text>
+              <SpeakableText style={styles.greeting}>{t(language, "menu_greeting")}</SpeakableText>
               <TouchableOpacity
-                style={styles.loginBtn}
+                style={[styles.loginBtn, NO_SELECT_WEB]}
                 onPress={() => router.push("/login")}
+                onLongPress={() => speakOnPress(t(language, "login"))}
                 accessibilityRole="button"
                 accessibilityLabel="Entrar com a conta Google"
                 testID="goto-login-button"
               >
                 <Ionicons name="logo-google" size={18} color="#fff" />
-                <Text style={styles.loginBtnText}>Entrar com Google</Text>
+                <Text style={styles.loginBtnText}>{t(language, "login")}</Text>
               </TouchableOpacity>
             </>
           )}
         </View>
 
         {/* Idioma */}
-        <Section title="Idioma">
+        <Section title={t(language, "menu_sec_language")}>
           <View style={styles.langRow}>
             {(["pt", "en", "es"] as const).map((l) => (
               <TouchableOpacity
@@ -106,7 +110,7 @@ export default function Menu() {
         </Section>
 
         {/* Acessibilidade toggles */}
-        <Section title="Acessibilidade">
+        <Section title={t(language, "menu_sec_accessibility")}>
           <View style={styles.card}>
             <ToggleRow
               icon="volume-high-outline"
@@ -119,46 +123,46 @@ export default function Menu() {
         </Section>
 
         {/* Navegação */}
-        <Section title="Navegação">
+        <Section title={t(language, "menu_sec_navigation")}>
           <View style={styles.card}>
-            <LinkRow icon="map" label="Mapa de Natal" onPress={() => router.push("/map")} testID="link-map" />
+            <LinkRow icon="map" label={t(language, "menu_map")} onPress={() => router.push("/map")} testID="link-map" />
             <View style={styles.divider} />
-            <LinkRow icon="people" label="Guias certificados" onPress={() => router.push("/guides")} testID="link-guides" />
+            <LinkRow icon="people" label={t(language, "guides_title")} onPress={() => router.push("/guides")} testID="link-guides" />
             <View style={styles.divider} />
-            <LinkRow icon="storefront" label="Parceiros acessíveis" onPress={() => router.push("/marketplace")} testID="link-marketplace" />
+            <LinkRow icon="storefront" label={t(language, "partners_title")} onPress={() => router.push("/marketplace")} testID="link-marketplace" />
             <View style={styles.divider} />
-            <LinkRow icon="ribbon" label="Selo Digital" onPress={() => router.push("/seal")} testID="link-seal" />
+            <LinkRow icon="ribbon" label={t(language, "seal_title")} onPress={() => router.push("/seal")} testID="link-seal" />
             <View style={styles.divider} />
-            <LinkRow icon="warning" label="Emergência" onPress={() => router.push("/emergency")} testID="link-emergency" iconColor={colors.error} />
+            <LinkRow icon="warning" label={t(language, "emergency")} onPress={() => router.push("/emergency")} testID="link-emergency" iconColor={colors.error} />
           </View>
         </Section>
 
         {/* Sobre */}
-        <Section title="Sobre">
+        <Section title={t(language, "menu_sec_about")}>
           <View style={styles.card}>
             <LinkRow
               icon="information-circle"
-              label="Sobre o projeto"
+              label={t(language, "menu_about_project")}
               onPress={() => router.push("/about")}
               testID="link-about-project"
             />
             <View style={styles.divider} />
             <LinkRow
               icon="chatbubble-outline"
-              label="Enviar feedback"
+              label={t(language, "menu_feedback")}
               onPress={() => Linking.openURL("mailto:feedback@turismoquesesente.com.br?subject=Feedback%20App")}
               testID="link-feedback"
             />
             <View style={styles.divider} />
-            <LinkRow icon="cog-outline" label="Painel administrativo" onPress={() => router.push("/admin")} testID="link-admin" />
+            <LinkRow icon="cog-outline" label={t(language, "menu_admin")} onPress={() => router.push("/admin")} testID="link-admin" />
           </View>
         </Section>
 
         {/* Logout */}
         {user && (
-          <TouchableOpacity style={styles.logoutBtn} onPress={confirmLogout} accessibilityRole="button" accessibilityLabel="Sair da conta" testID="logout-button">
+          <TouchableOpacity style={[styles.logoutBtn, NO_SELECT_WEB]} onPress={confirmLogout} onLongPress={() => speakOnPress(t(language, "menu_logout"))} accessibilityRole="button" accessibilityLabel="Sair da conta" testID="logout-button">
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <Text style={styles.logoutText}>Sair da conta</Text>
+            <Text style={styles.logoutText}>{t(language, "menu_logout")}</Text>
           </TouchableOpacity>
         )}
 
@@ -173,7 +177,7 @@ export default function Menu() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>
+      <SpeakableText accessibilityRole="header" style={styles.sectionTitle}>{title}</SpeakableText>
       {children}
     </View>
   );
@@ -201,8 +205,9 @@ function ToggleRow({ icon, label, value, onChange, testID }: {
 function LinkRow({ icon, label, onPress, iconColor, testID }: {
   icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; iconColor?: string; testID: string;
 }) {
+  const speakOnPress = useSpeakOnPress();
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} testID={testID} accessibilityRole="button" accessibilityLabel={label}>
+    <TouchableOpacity style={[styles.row, NO_SELECT_WEB]} onPress={onPress} onLongPress={() => speakOnPress(label)} testID={testID} accessibilityRole="button" accessibilityLabel={label}>
       <View style={styles.iconWrap}><Ionicons name={icon} size={20} color={iconColor || colors.brand} /></View>
       <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />

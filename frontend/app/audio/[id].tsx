@@ -19,11 +19,14 @@ import { colors, fontSizes, radii, spacing } from "@/src/theme";
 import { api, TouristSpot } from "@/src/api";
 import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
-import { ttsLocale } from "@/src/i18n";
+import { ttsLocale, t } from "@/src/i18n";
+import { SpeakableText } from "@/src/components/SpeakableText";
+import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 
 export default function AudioExperience() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { language } = useAuth();
+  const speakOnPress = useSpeakOnPress();
   const [spot, setSpot] = useState<TouristSpot | null>(null);
   const [audioText, setAudioText] = useState<string>("");
   const [spotName, setSpotName] = useState<string>("");
@@ -207,7 +210,7 @@ export default function AudioExperience() {
         >
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text accessibilityRole="header" style={styles.topTitle}>Experiência de áudio</Text>
+        <SpeakableText accessibilityRole="header" style={styles.topTitle}>{t(language, "audio_title")}</SpeakableText>
         <TouchableOpacity
           style={styles.iconBtn}
           onPress={() => setShowText((v) => !v)}
@@ -231,9 +234,9 @@ export default function AudioExperience() {
 
         {/* Title */}
         <View style={styles.titleWrap}>
-          <Text accessibilityRole="header" style={styles.title} numberOfLines={2}>
+          <SpeakableText accessibilityRole="header" style={styles.title} numberOfLines={2}>
             {spotName || spot.name}
-          </Text>
+          </SpeakableText>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.location}>
@@ -326,13 +329,14 @@ export default function AudioExperience() {
             <Ionicons name="document-text" size={18} color={colors.brand} />
             <Text accessibilityRole="header" style={styles.transcriptTitle}>Audiodescrição</Text>
           </View>
-          <Text style={styles.transcriptText}>{audioText || spot.audio_description}</Text>
+          <SpeakableText style={styles.transcriptText}>{audioText || spot.audio_description}</SpeakableText>
         </View>
 
         {/* Footer info */}
         <TouchableOpacity
-          style={styles.moreInfo}
+          style={[styles.moreInfo, NO_SELECT_WEB]}
           onPress={() => router.push(`/spot/${spot.id}`)}
+          onLongPress={() => speakOnPress(spotName || spot.name)}
           accessibilityRole="button"
           accessibilityLabel={`Mais informações sobre ${spotName || spot.name}`}
           testID="more-info-button"
