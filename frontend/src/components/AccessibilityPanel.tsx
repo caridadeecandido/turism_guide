@@ -53,8 +53,8 @@ export function AccessibilityPanel() {
           </View>
 
           <Toggle
-            label="Audiodescrição ao tocar"
-            hint="Lê o conteúdo em voz alta ao tocar nos itens"
+            label="Audiodescrição (segure para ouvir)"
+            hint="Segure um item para ouvir; toque para abrir"
             icon="volume-high"
             value={prefs.speakOnTouch}
             onChange={(v) => onToggle("speakOnTouch", v)}
@@ -62,8 +62,9 @@ export function AccessibilityPanel() {
           />
 
           <Text style={styles.note}>
-            Use com o leitor de tela do aparelho (VoiceOver/TalkBack) DESLIGADO — se ele
-            estiver ligado, o app não fala para não duplicar a leitura. Preferências
+            Com isto ligado, SEGURE um item para ouvir a descrição; o TOQUE simples abre o
+            item. Use com o leitor de tela do aparelho (VoiceOver/TalkBack) DESLIGADO — se
+            ele estiver ligado, o app não fala para não duplicar a leitura. Preferências
             salvas neste dispositivo.
           </Text>
         </Animated.View>

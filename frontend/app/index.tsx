@@ -9,6 +9,7 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -39,6 +40,14 @@ const QUICK_ACCESS_ES = ["Playas", "Historia", "Parques", "Alojamiento", "Comida
 // Normaliza texto para busca: minúsculas e sem acentos (robusto a "maracajau" -> "Maracajaú").
 const normalize = (s: string) =>
   (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+// No web, segurar (long press) seleciona texto ou abre o menu de contexto do navegador.
+// Aplicamos este estilo aos itens audiodescritíveis para que o gesto de segurar dispare
+// só a fala, sem seleção nem callout. No nativo é null (sem efeito).
+const NO_SELECT_WEB =
+  Platform.OS === "web"
+    ? ({ userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" } as any)
+    : null;
 
 export default function Home() {
   const { user, signOut, language, setLanguage } = useAuth();
@@ -281,7 +290,13 @@ function Shortcut({ icon, label, color, onPress, testID }: {
 }) {
   const speakOnPress = useSpeakOnPress();
   return (
-    <TouchableOpacity style={styles.shortcut} onPress={() => { speakOnPress(label); onPress(); }} testID={testID} accessibilityLabel={label}>
+    <TouchableOpacity
+      style={[styles.shortcut, NO_SELECT_WEB]}
+      onPress={onPress}
+      onLongPress={() => speakOnPress(label)}
+      testID={testID}
+      accessibilityLabel={label}
+    >
       <View style={[styles.shortcutIcon, { backgroundColor: color + "25" }]}>
         <Ionicons name={icon} size={22} color={color} />
       </View>
@@ -296,10 +311,11 @@ function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number 
   const spokenName = spot.translations?.[language]?.name || spot.name;
   return (
     <TouchableOpacity
-      style={styles.featuredCard}
-      onPress={() => { speakOnPress(spokenName); router.push(`/spot/${spot.id}`); }}
+      style={[styles.featuredCard, NO_SELECT_WEB]}
+      onPress={() => router.push(`/spot/${spot.id}`)}
+      onLongPress={() => speakOnPress(spokenName)}
       accessibilityRole="button"
-      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}. Atrativo em destaque. Toque para ver detalhes e audiodescrição.`}
+      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}. Atrativo em destaque. Toque para ver detalhes; segure para ouvir o nome.`}
       testID={`featured-${spot.id}`}
     >
       <Image
@@ -332,10 +348,11 @@ function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number 
   const dist = spot._live_distance ?? spot.distance_km;
   return (
     <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => { speakOnPress(spokenName); router.push(`/spot/${spot.id}`); }}
+      style={[styles.listItem, NO_SELECT_WEB]}
+      onPress={() => router.push(`/spot/${spot.id}`)}
+      onLongPress={() => speakOnPress(spokenName)}
       accessibilityRole="button"
-      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${dist < 1 ? `${Math.round(dist * 1000)} metros` : `${dist.toFixed(1)} quilômetros`}. Toque para ver detalhes e audiodescrição.`}
+      accessibilityLabel={`${spot.name}, ${spot.category} em ${spot.neighborhood}, a ${dist < 1 ? `${Math.round(dist * 1000)} metros` : `${dist.toFixed(1)} quilômetros`}. Toque para ver detalhes; segure para ouvir o nome.`}
       testID={`list-${spot.id}`}
     >
       <Image

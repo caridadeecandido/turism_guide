@@ -125,9 +125,10 @@ export function useA11y(): Ctx {
 }
 
 /**
- * Hook compartilhado para "audiodescrição ao tocar". Retorna uma função para chamar
- * no onPress com o texto JÁ localizado; ela fala na voz do idioma atual (ttsLocale).
- * No-op quando o toggle está desligado ou há leitor de tela ativo.
+ * Hook compartilhado para "audiodescrição". Retorna uma função para chamar no
+ * onLongPress (SEGURAR) com o texto JÁ localizado; ela fala na voz do idioma atual
+ * (ttsLocale). O onPress simples deve só navegar. No-op quando o toggle está desligado
+ * ou há leitor de tela ativo.
  */
 export function useSpeakOnPress() {
   const { speak } = useA11y();

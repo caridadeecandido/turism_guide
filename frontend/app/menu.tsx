@@ -110,7 +110,7 @@ export default function Menu() {
           <View style={styles.card}>
             <ToggleRow
               icon="volume-high-outline"
-              label="Audiodescrição ao tocar"
+              label="Audiodescrição (segure para ouvir)"
               value={prefs.speakOnTouch}
               onChange={(v) => set("speakOnTouch", v)}
               testID="toggle-speak"
