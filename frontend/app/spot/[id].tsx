@@ -20,6 +20,7 @@ import { useAuth } from "@/src/auth-context";
 import { t } from "@/src/i18n";
 import { SpeakableText } from "@/src/components/SpeakableText";
 import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
+import { openDirections } from "@/src/directions";
 
 type Translated = {
   name: string;
@@ -189,6 +190,17 @@ export default function SpotDetail() {
             <Ionicons name="location" size={20} color={colors.brand} />
             <SpeakableText style={styles.addressText}>{spot.address}</SpeakableText>
           </View>
+          <TouchableOpacity
+            style={[styles.routeBtn, NO_SELECT_WEB]}
+            onPress={() => openDirections({ latitude: spot.latitude, longitude: spot.longitude, address: spot.address })}
+            onLongPress={() => speakOnPress(t(language, "directions"))}
+            accessibilityRole="button"
+            accessibilityLabel={`Traçar rota até ${view.name} no Google Maps`}
+            testID="directions-button"
+          >
+            <Ionicons name="navigate" size={18} color="#fff" />
+            <Text style={styles.routeBtnText}>{t(language, "directions")}</Text>
+          </TouchableOpacity>
           {spot.latitude && spot.longitude && (
             <TouchableOpacity
               style={styles.mapBtn}
@@ -278,6 +290,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addressText: { color: colors.text, flex: 1, fontSize: fontSizes.body, lineHeight: 22 },
+  routeBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    marginTop: spacing.sm, paddingVertical: spacing.sm,
+    backgroundColor: colors.brand, borderRadius: radii.pill, gap: 6,
+  },
+  routeBtnText: { color: "#fff", fontWeight: "800", fontSize: fontSizes.body },
   mapBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
     marginTop: spacing.sm, padding: spacing.sm,

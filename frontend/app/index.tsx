@@ -20,6 +20,7 @@ import { resolveAssetUrl } from "@/src/asset-url";
 import { useAuth } from "@/src/auth-context";
 import { useSpeakOnPress, NO_SELECT_WEB } from "@/src/accessibility";
 import { t } from "@/src/i18n";
+import { openDirections } from "@/src/directions";
 import { getCurrentCoords, distanceKm, NATAL_CENTER } from "@/src/geo";
 import { useSiteConfig } from "@/src/site-config";
 import { SealFooter } from "@/src/components/SealBranding";
@@ -317,6 +318,19 @@ function FeaturedCard({ spot }: { spot: TouristSpot & { _live_distance?: number 
         accessibilityLabel={spot.image_alt || `Foto de ${spot.name}`}
       />
       <View style={styles.featuredOverlay} />
+      <TouchableOpacity
+        style={[styles.routeFab, NO_SELECT_WEB]}
+        onPress={(e) => {
+          e?.stopPropagation?.();
+          openDirections({ latitude: spot.latitude, longitude: spot.longitude, address: spot.address });
+        }}
+        onLongPress={() => speakOnPress(t(language, "directions"))}
+        accessibilityRole="button"
+        accessibilityLabel={`Traçar rota até ${spokenName} no Google Maps`}
+        testID={`route-featured-${spot.id}`}
+      >
+        <Ionicons name="navigate" size={16} color="#fff" />
+      </TouchableOpacity>
       <View style={styles.featuredContent}>
         {spot.accessibility_badges[0] && (
           <View style={styles.featuredBadge}>
@@ -370,7 +384,19 @@ function SpotListItem({ spot }: { spot: TouristSpot & { _live_distance?: number 
           ))}
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+      <TouchableOpacity
+        style={[styles.routeBtn, NO_SELECT_WEB]}
+        onPress={(e) => {
+          e?.stopPropagation?.();
+          openDirections({ latitude: spot.latitude, longitude: spot.longitude, address: spot.address });
+        }}
+        onLongPress={() => speakOnPress(t(language, "directions"))}
+        accessibilityRole="button"
+        accessibilityLabel={`Traçar rota até ${spokenName} no Google Maps`}
+        testID={`route-list-${spot.id}`}
+      >
+        <Ionicons name="navigate" size={18} color={colors.brand} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
@@ -468,6 +494,19 @@ const styles = StyleSheet.create({
   },
   featuredImage: { width: "100%", height: "100%", position: "absolute" },
   featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(11, 17, 32, 0.55)" },
+  routeFab: {
+    position: "absolute", top: spacing.sm, right: spacing.sm,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.brand,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.6)",
+  },
+  routeBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: colors.badgeBg,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: colors.border,
+  },
   featuredContent: { flex: 1, justifyContent: "flex-end", padding: spacing.md, gap: 6 },
   featuredBadge: {
     flexDirection: "row", alignItems: "center", alignSelf: "flex-start",

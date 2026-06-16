@@ -73,6 +73,7 @@ const strings = {
     menu_feedback: "Enviar feedback",
     menu_admin: "Painel administrativo",
     menu_logout: "Sair da conta",
+    directions: "Rotas",
   },
   en: {
     welcome: "Welcome to Natal!",
@@ -145,6 +146,7 @@ const strings = {
     menu_feedback: "Send feedback",
     menu_admin: "Admin panel",
     menu_logout: "Sign out of account",
+    directions: "Directions",
   },
   es: {
     welcome: "¡Bienvenido(a) a Natal!",
@@ -217,6 +219,7 @@ const strings = {
     menu_feedback: "Enviar comentarios",
     menu_admin: "Panel administrativo",
     menu_logout: "Cerrar sesión",
+    directions: "Cómo llegar",
   },
 } as const;
 
