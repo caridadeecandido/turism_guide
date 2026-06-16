@@ -35,6 +35,10 @@ const QUICK_ACCESS = [
 const QUICK_ACCESS_EN = ["Beaches", "History", "Parks", "Lodging", "Food", "Viewpoints"];
 const QUICK_ACCESS_ES = ["Playas", "Historia", "Parques", "Alojamiento", "Comida", "Miradores"];
 
+// Normaliza texto para busca: minúsculas e sem acentos (robusto a "maracajau" -> "Maracajaú").
+const normalize = (s: string) =>
+  (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 export default function Home() {
   const { user, signOut, language, setLanguage } = useAuth();
   const { config } = useSiteConfig();
@@ -78,11 +82,15 @@ export default function Home() {
   }));
 
   const featured = enriched.filter((s) => s.featured);
-  const filtered = search
+  // Busca robusta: ignora acentos e procura em nome, bairro, categoria e endereço.
+  const q = normalize(search.trim());
+  const filtered = q
     ? enriched.filter(
         (s) =>
-          s.name.toLowerCase().includes(search.toLowerCase()) ||
-          s.neighborhood.toLowerCase().includes(search.toLowerCase()),
+          normalize(s.name).includes(q) ||
+          normalize(s.neighborhood).includes(q) ||
+          normalize(s.category).includes(q) ||
+          normalize(s.address).includes(q),
       )
     : enriched;
 
@@ -179,7 +187,7 @@ export default function Home() {
             onChangeText={setSearch}
             placeholder={t(language, "search_placeholder")}
             placeholderTextColor={colors.textMuted}
-            accessibilityLabel="Buscar pontos turísticos por nome ou bairro"
+            accessibilityLabel="Buscar pontos turísticos por nome, bairro, categoria ou endereço"
             testID="search-input"
           />
           <TouchableOpacity testID="voice-button" accessibilityRole="button" accessibilityLabel="Buscar por voz">
