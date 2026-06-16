@@ -78,6 +78,11 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, []);
 
   useEffect(() => {
+    // FAIL-OPEN no web: react-native-web faz isScreenReaderEnabled() resolver SEMPRE
+    // true, o que suprimiria toda a fala. No web não há detecção confiável de leitor
+    // de tela, então não detectamos — respeitamos só o toggle (screenReaderRef = false).
+    // No nativo, detectamos de verdade para não duplicar a leitura.
+    if (Platform.OS === "web") return;
     let mounted = true;
     AccessibilityInfo.isScreenReaderEnabled()
       .then((on) => {
