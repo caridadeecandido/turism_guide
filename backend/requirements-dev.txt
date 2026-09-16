@@ -1,0 +1,4 @@
+# Local dev / test only — not installed in the deployed function.
+-r requirements.txt
+pytest>=8.0.0
+requests>=2.31.0

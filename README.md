@@ -2,34 +2,32 @@
 
 Aplicativo de turismo acessível para Natal/RN (projeto SENAC RN).
 
-- `backend/` — API REST (FastAPI + MongoDB)
-- `frontend/` — App Expo / React Native (iOS, Android e Web)
+- `backend/` — API REST (FastAPI + Postgres), deploy como Vercel Function Python
+- `frontend/` — App Expo / React Native (iOS, Android e Web), deploy como site estático na Vercel
+
+Cada pasta é um **projeto Vercel separado** (Root Directory apontando pra
+`backend/` e `frontend/` respectivamente), ligados ao mesmo repositório.
 
 ---
 
-## Deploy do backend no Render
+## Deploy do backend na Vercel
 
-O backend é publicado como um **Web Service** no Render a partir do blueprint
-[`render.yaml`](render.yaml) na raiz do repositório. A arquitetura atual é mantida
-(FastAPI + Postgres), com o start command via `uvicorn` ouvindo na porta fornecida
-pela variável `PORT` do Render.
+O backend roda como uma [Vercel Function Python](https://vercel.com/docs/frameworks/backend/fastapi)
+— Vercel detecta o `app = FastAPI()` em `backend/server.py` automaticamente.
 
 ### Passos
 
-1. Faça push do repositório para o GitHub/GitLab.
-2. No painel do Render: **New + → Blueprint** e selecione este repositório.
-   O Render lê o `render.yaml` automaticamente e cria o serviço.
-   - Alternativa manual (**New + → Web Service**), apontando para a pasta `backend/`:
-     - **Build Command:** `pip install --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r requirements.txt`
-     - **Start Command:** `uvicorn server:app --host 0.0.0.0 --port $PORT`
-3. Em **Environment**, defina as variáveis de ambiente (tabela abaixo). Todas estão
-   marcadas como `sync: false` no blueprint, então o Render pede o valor no painel —
-   **nenhum segredo fica versionado**.
-4. Confirme o deploy. O health check usa `GET /api/health`.
-5. Use a URL pública do serviço (ex.: `https://turismo-que-se-sente-api.onrender.com`)
-   no frontend, na variável `EXPO_PUBLIC_BACKEND_URL`.
+1. Faça push do repositório para o GitHub.
+2. No painel da Vercel: **Add New → Project**, selecione o repositório, e
+   configure **Root Directory: `backend`**.
+3. Em **Environment Variables**, defina as variáveis da tabela abaixo.
+4. Deploy. Health check em `GET /api/health`.
+5. Use a URL pública do projeto (ex.: `https://backend-xxxx.vercel.app`) no
+   frontend, na variável `EXPO_PUBLIC_BACKEND_URL`.
 
-### Variáveis de ambiente (definir no Render)
+Via CLI, de dentro de `backend/`: `npx vercel deploy --prod`.
+
+### Variáveis de ambiente
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
@@ -37,16 +35,12 @@ pela variável `PORT` do Render.
 | `JWT_SECRET` | sim | Segredo para assinar os tokens JWT de admin. Use um valor longo e aleatório. |
 | `DEFAULT_ADMIN_EMAIL` | sim | E-mail do admin criado no primeiro start. |
 | `DEFAULT_ADMIN_PASSWORD` | sim | Senha do admin criada no primeiro start (troque após o primeiro login). |
-| `CLOUDINARY_URL` | sim* | Credencial única do Cloudinary: `cloudinary://<api_key>:<api_secret>@<cloud_name>`. Usada pelo upload de imagens do admin. |
-| `CLOUDINARY_CLOUD_NAME` | sim* | Alternativa ao `CLOUDINARY_URL` (use o trio abaixo OU a URL única). |
-| `CLOUDINARY_API_KEY` | sim* | Parte do trio de credenciais do Cloudinary. |
-| `CLOUDINARY_API_SECRET` | sim* | Parte do trio de credenciais do Cloudinary. |
-| `EMERGENT_LLM_KEY` | opcional | Chave para tradução automática via LLM. Sem ela, a tradução ao vivo retorna 503 e o restante do app segue funcionando. |
+| `BLOB_READ_WRITE_TOKEN` | sim* | Token do Vercel Blob, usado pelo upload de imagens do admin. Auto-preenchido ao conectar um Blob store ao projeto. |
+| `EMERGENT_LLM_KEY` | não usado | Tradução automática via LLM foi desativada (pacote `emergentintegrations` não está no PyPI público, incompatível com o build da Vercel). Todo o conteúdo semeado já tem tradução manual EN/ES; conteúdo novo sem tradução manual retorna 503 no endpoint de tradução. |
 
-\* Para o upload de imagens funcionar, defina **ou** `CLOUDINARY_URL`, **ou** o trio
-`CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`. Sem credenciais,
-`POST /admin/upload-image` retorna 503; o restante do app segue funcionando. Opcionalmente,
-`CLOUDINARY_UPLOAD_FOLDER` define a pasta de destino no Cloudinary (padrão `turismo-que-se-sente/uploads`).
+\* Sem `BLOB_READ_WRITE_TOKEN`, `POST /admin/upload-image` retorna 503; o
+restante do app segue funcionando. Opcionalmente, `BLOB_UPLOAD_FOLDER` define
+a pasta de destino no Blob store (padrão `turismo-que-se-sente/uploads`).
 
 Gere um `JWT_SECRET` seguro:
 
@@ -56,14 +50,17 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ### Observações
 
-- **Postgres não é provisionado pelo Render.** Use um provedor gerenciado (ex.: Neon,
-  Supabase, Render Postgres) e cole a connection string em `DATABASE_URL`.
-- **Uploads de imagem** (admin) vão para o **Cloudinary** — o endpoint retorna a
-  `secure_url` (https absoluta e estável), então não dependem do disco efêmero do Render.
-  As imagens de **marca** (`backend/static/brand/`) continuam versionadas no repo e são
-  servidas em `/static/brand/...`.
-- O `EMERGENT_LLM_KEY` e o pacote `emergentintegrations` (resolvido pelo
-  `--extra-index-url` no build) são necessários apenas para a tradução automática.
+- **Postgres não é provisionado pela Vercel.** Use um provedor gerenciado
+  (ex.: Neon) e cole a connection string em `DATABASE_URL`.
+- **Uploads de imagem** (admin) vão para o **Vercel Blob** — crie um store em
+  **Storage → Blob** no dashboard e conecte ao projeto `backend`; isso
+  popula `BLOB_READ_WRITE_TOKEN` automaticamente. As imagens de **marca**
+  (`backend/static/brand/`) continuam versionadas no repo e são servidas em
+  `/static/brand/...` via `app.mount()`.
+- Seed automático (14 pontos + 6 parceiros + 5 guias + 1 admin + site config)
+  roda só uma vez — na primeira request após o banco ficar vazio — e fica
+  guardado por uma flag em processo (`backend/server.py`, `ensure_ready()`),
+  então cold starts subsequentes não repetem o trabalho.
 
 ---
 
@@ -72,7 +69,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```bash
 cd backend
 cp .env.example .env   # preencha os valores (veja a tabela acima), incl. DATABASE_URL
-pip install --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r requirements.txt
+pip install -r requirements-dev.txt
 uvicorn server:app --reload --port 8000
 ```
 
@@ -83,7 +80,7 @@ A API sobe em `http://localhost:8000` (health check em `/api/health`).
 ```bash
 cd frontend
 yarn install
-# defina EXPO_PUBLIC_BACKEND_URL apontando para o backend (local ou Render)
+# defina EXPO_PUBLIC_BACKEND_URL apontando para o backend (local ou Vercel)
 yarn web        # ou: yarn android / yarn ios
 ```
 
@@ -94,10 +91,10 @@ yarn web        # ou: yarn android / yarn ios
 O app lê a URL do backend da variável **`EXPO_PUBLIC_BACKEND_URL`** (usada em
 `src/api.ts`, `src/auth-context.tsx`, `src/site-config.tsx`, `src/admin-auth.tsx`,
 `src/asset-url.ts`, etc.). Em produção, ela deve apontar para a **URL pública do
-backend no Render**, por exemplo:
+backend na Vercel**, por exemplo:
 
 ```
-EXPO_PUBLIC_BACKEND_URL=https://turismo-que-se-sente-api.onrender.com
+EXPO_PUBLIC_BACKEND_URL=https://backend-xxxx.vercel.app
 ```
 
 > ⚠️ **Importante:** variáveis com o prefixo `EXPO_PUBLIC_` são **embutidas no bundle
@@ -108,38 +105,20 @@ EXPO_PUBLIC_BACKEND_URL=https://turismo-que-se-sente-api.onrender.com
 
 A variável pode ser definida de duas formas:
 
-- **Arquivo `.env`** na pasta `frontend/` (o Expo carrega automaticamente as variáveis
-  `EXPO_PUBLIC_*`):
-  ```
-  EXPO_PUBLIC_BACKEND_URL=https://turismo-que-se-sente-api.onrender.com
-  ```
-- **Inline** no comando de build (útil em CI):
+- **No painel da Vercel** (projeto `frontend` → Environment Variables) — é
+  assim que o build de produção lê o valor.
+- **Inline** no comando de build (útil localmente/CI):
   ```bash
-  EXPO_PUBLIC_BACKEND_URL=https://turismo-que-se-sente-api.onrender.com npx expo export -p web
+  EXPO_PUBLIC_BACKEND_URL=https://backend-xxxx.vercel.app npx expo export -p web
   ```
 
-### Build web (site estático)
+### Publicar o frontend na Vercel
 
-```bash
-cd frontend
-yarn install
-EXPO_PUBLIC_BACKEND_URL=https://turismo-que-se-sente-api.onrender.com npx expo export -p web
-```
-
-- O comando `npx expo export -p web` gera o site estático (o `app.json` já usa
-  `web.bundler = "metro"` e `web.output = "static"`).
-- A saída fica na pasta **`frontend/dist/`** — é esse diretório que você publica em
-  qualquer host estático (Render Static Site, Netlify, Vercel, GitHub Pages,
-  Cloudflare Pages, S3+CloudFront, etc.).
-
-### Publicar no Render (Static Site)
-
-1. **New + → Static Site**, apontando para este repositório.
-2. Configure:
-   - **Root Directory:** `frontend`
-   - **Build Command:** `yarn install && npx expo export -p web`
-   - **Publish Directory:** `dist`
-3. Em **Environment**, adicione `EXPO_PUBLIC_BACKEND_URL` com a URL do backend no Render.
-4. Se rotas dinâmicas (ex.: `/spot/<id>`) ou refresh/deep-link retornarem 404, adicione
-   uma regra de **Rewrite** `/* → /index.html` (Redirects/Rewrites do Render) para que o
-   roteamento do Expo Router seja resolvido no cliente.
+1. **Add New → Project**, apontando para este repositório.
+2. Configure **Root Directory: `frontend`**. O `frontend/vercel.json` já
+   define o build command (`npx expo export -p web`), a pasta de saída
+   (`dist`) e o rewrite SPA necessário pelas rotas dinâmicas do Expo Router
+   (`/spot/[id]`, `/guide/[id]`, `/partner/[id]`, `/audio/[id]`).
+3. Em **Environment Variables**, adicione `EXPO_PUBLIC_BACKEND_URL` com a URL
+   do backend na Vercel.
+4. Deploy. Via CLI, de dentro de `frontend/`: `npx vercel deploy --prod`.

@@ -8,28 +8,26 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from db import PgJsonStore
 import os
-import io
 import asyncio
 import base64
 import binascii
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
 import bcrypt
 import jwt as pyjwt
-import cloudinary
-import cloudinary.uploader
+import vercel_blob
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Static files: the official brand assets live in backend/static/brand and are
-# served under /static. User uploads go to Cloudinary, not the local disk
-# (the Render free tier filesystem is ephemeral).
+# served under /static. User uploads go to Vercel Blob, not the local disk
+# (the deployed function's filesystem is read-only/ephemeral).
 STATIC_DIR = ROOT_DIR / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -51,35 +49,10 @@ JWT_EXPIRE_MIN = 60 * 24  # 24h
 DEFAULT_ADMIN_EMAIL = os.environ['DEFAULT_ADMIN_EMAIL']
 DEFAULT_ADMIN_PASSWORD = os.environ['DEFAULT_ADMIN_PASSWORD']
 
-# ========== CLOUDINARY (image hosting) ==========
-# Credentials are read from the environment only — never hardcoded. Accept either
-# CLOUDINARY_URL (cloudinary://<api_key>:<api_secret>@<cloud_name>) or the individual
-# CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET variables.
-CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "")
-CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
-CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
-CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
-CLOUDINARY_UPLOAD_FOLDER = os.environ.get("CLOUDINARY_UPLOAD_FOLDER", "turismo-que-se-sente/uploads")
-
-if CLOUDINARY_URL:
-    # The SDK reads CLOUDINARY_URL from the environment automatically; force https URLs.
-    cloudinary.config(secure=True)
-elif CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-    cloudinary.config(
-        cloud_name=CLOUDINARY_CLOUD_NAME,
-        api_key=CLOUDINARY_API_KEY,
-        api_secret=CLOUDINARY_API_SECRET,
-        secure=True,
-    )
-
-
-def cloudinary_configured() -> bool:
-    cfg = cloudinary.config()
-    return bool(
-        getattr(cfg, "cloud_name", None)
-        and getattr(cfg, "api_key", None)
-        and getattr(cfg, "api_secret", None)
-    )
+# ========== VERCEL BLOB (image hosting) ==========
+# vercel_blob reads BLOB_READ_WRITE_TOKEN from the environment itself.
+BLOB_UPLOAD_FOLDER = os.environ.get("BLOB_UPLOAD_FOLDER", "turismo-que-se-sente/uploads")
+MIME_EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 
 app = FastAPI(title="Turismo que se Sente API", version="3.0.0")
 api_router = APIRouter(prefix="/api")
@@ -1559,7 +1532,7 @@ async def admin_list_inquiries(_admin: dict = Depends(require_admin)):
 # ========== ROUTES: IMAGE UPLOAD (admin) ==========
 @api_router.post("/admin/upload-image")
 async def upload_image(payload: ImageUpload, _admin: dict = Depends(require_admin)):
-    """Decode a base64 image and upload it to Cloudinary, returning the secure_url."""
+    """Decode a base64 image and upload it to Vercel Blob, returning its public URL."""
     raw = (payload.base64 or "").strip()
     if not raw:
         raise HTTPException(400, "Imagem vazia")
@@ -1582,39 +1555,33 @@ async def upload_image(payload: ImageUpload, _admin: dict = Depends(require_admi
     if not binary:
         raise HTTPException(400, "Imagem vazia")
 
-    if not cloudinary_configured():
-        raise HTTPException(503, "Serviço de imagens (Cloudinary) não configurado")
+    if not os.environ.get("BLOB_READ_WRITE_TOKEN"):
+        raise HTTPException(503, "Serviço de imagens (Vercel Blob) não configurado")
 
     img_id = str(uuid.uuid4())
-    # Cloudinary's SDK is synchronous; run it off the event loop.
+    pathname = f"{BLOB_UPLOAD_FOLDER}/{img_id}{MIME_EXT.get(mime, '.jpg')}"
+    # vercel_blob's put() is synchronous; run it off the event loop.
     try:
-        result = await asyncio.to_thread(
-            cloudinary.uploader.upload,
-            io.BytesIO(binary),
-            resource_type="image",
-            folder=CLOUDINARY_UPLOAD_FOLDER,
-            public_id=img_id,
-            overwrite=True,
-        )
+        result = await asyncio.to_thread(vercel_blob.put, pathname, binary)
     except Exception as e:
-        logger.error("Cloudinary upload failed: %s", e)
-        raise HTTPException(502, f"Falha ao enviar imagem para o Cloudinary: {e}")
+        logger.error("Vercel Blob upload failed: %s", e)
+        raise HTTPException(502, f"Falha ao enviar imagem para o Vercel Blob: {e}")
 
-    secure_url = result.get("secure_url")
-    if not secure_url:
-        raise HTTPException(502, "Cloudinary não retornou uma URL segura")
+    image_url = result.get("url")
+    if not image_url:
+        raise HTTPException(502, "Vercel Blob não retornou uma URL")
 
     # Keep lightweight metadata (no base64 blob) for record-keeping
     await db.images.insert_one({
         "id": img_id,
-        "image_url": secure_url,
-        "public_id": result.get("public_id"),
+        "image_url": image_url,
+        "pathname": result.get("pathname"),
         "mime": mime,
         "alt": payload.alt or "",
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    return {"id": img_id, "image_url": secure_url, "alt": payload.alt}
+    return {"id": img_id, "image_url": image_url, "alt": payload.alt}
 
 
 # ========== ROUTES: TOURIST AUTH ==========
@@ -1794,20 +1761,16 @@ async def create_inquiry(payload: InquiryCreate, authorization: Optional[str] = 
 
 
 # ========== STARTUP ==========
-@app.on_event("startup")
-async def startup_indexes_and_seed():
-    await db.connect()
-    try:
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("user_id", unique=True)
-        await db.user_sessions.create_index("session_token", unique=True)
-        await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
-        await db.partners.create_index("seal_code", unique=True)
-        await db.admins.create_index("email", unique=True)
-        await db.spots.create_index("id", unique=True)
-    except Exception as e:
-        logger.warning("Index creation: %s", e)
+# Guarded by _ready so this only does real work once per process: cheap on a
+# traditional server (runs once at boot via the startup event below), and
+# still correct on serverless hosts whose ASGI startup/lifespan hooks may not
+# fire reliably — the middleware calls it before the first request per cold
+# start, and every call after that short-circuits on `if _ready: return`.
+_ready = False
+_ready_lock = asyncio.Lock()
 
+
+async def _seed_if_empty():
     # Seed spots
     if await db.spots.count_documents({}) == 0:
         await db.spots.insert_many([TouristSpot(**s).dict() for s in SEED_SPOTS])
@@ -1871,9 +1834,33 @@ async def startup_indexes_and_seed():
             updates["updated_at"] = datetime.now(timezone.utc).isoformat()
             await db.site_config.update_one({"id": "default"}, {"$set": updates})
             logger.info("Migrated site_config: %s", list(updates.keys()))
-    # Purge bad translation cache from previous iteration (gpt-5.4-mini bug)
-    await db.translations.delete_many({})
-    logger.info("Cleared translations cache (forces fresh LLM with gpt-4o-mini)")
+
+
+async def ensure_ready():
+    global _ready
+    if _ready:
+        return
+    async with _ready_lock:
+        if _ready:
+            return
+        await db.connect()
+        try:
+            await db.users.create_index("email", unique=True)
+            await db.users.create_index("user_id", unique=True)
+            await db.user_sessions.create_index("session_token", unique=True)
+            await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
+            await db.partners.create_index("seal_code", unique=True)
+            await db.admins.create_index("email", unique=True)
+            await db.spots.create_index("id", unique=True)
+        except Exception as e:
+            logger.warning("Index creation: %s", e)
+        await _seed_if_empty()
+        _ready = True
+
+
+@app.on_event("startup")
+async def startup_indexes_and_seed():
+    await ensure_ready()
 
 
 app.include_router(api_router)
@@ -1888,6 +1875,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def ensure_ready_middleware(request, call_next):
+    # Cheap on a traditional server (already ready via the startup event).
+    # On serverless hosts, this is what guarantees the DB is connected and
+    # seeded before the first request each cold start actually handles.
+    if not request.url.path.startswith("/static"):
+        await ensure_ready()
+    return await call_next(request)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
