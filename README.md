@@ -11,7 +11,7 @@ Aplicativo de turismo acessível para Natal/RN (projeto SENAC RN).
 
 O backend é publicado como um **Web Service** no Render a partir do blueprint
 [`render.yaml`](render.yaml) na raiz do repositório. A arquitetura atual é mantida
-(FastAPI + MongoDB), com o start command via `uvicorn` ouvindo na porta fornecida
+(FastAPI + Postgres), com o start command via `uvicorn` ouvindo na porta fornecida
 pela variável `PORT` do Render.
 
 ### Passos
@@ -33,8 +33,7 @@ pela variável `PORT` do Render.
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `MONGO_URL` | sim | String de conexão do MongoDB (ex.: MongoDB Atlas `mongodb+srv://...`). |
-| `DB_NAME` | sim | Nome do banco de dados. |
+| `DATABASE_URL` | sim | String de conexão Postgres (ex.: Neon `postgresql://user:pass@host/db?sslmode=require`). |
 | `JWT_SECRET` | sim | Segredo para assinar os tokens JWT de admin. Use um valor longo e aleatório. |
 | `DEFAULT_ADMIN_EMAIL` | sim | E-mail do admin criado no primeiro start. |
 | `DEFAULT_ADMIN_PASSWORD` | sim | Senha do admin criada no primeiro start (troque após o primeiro login). |
@@ -57,8 +56,8 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ### Observações
 
-- **MongoDB não é provisionado pelo Render.** Use um cluster gerenciado (ex.: MongoDB
-  Atlas) e libere o acesso de rede do Render (IP allowlist `0.0.0.0/0` ou peering).
+- **Postgres não é provisionado pelo Render.** Use um provedor gerenciado (ex.: Neon,
+  Supabase, Render Postgres) e cole a connection string em `DATABASE_URL`.
 - **Uploads de imagem** (admin) vão para o **Cloudinary** — o endpoint retorna a
   `secure_url` (https absoluta e estável), então não dependem do disco efêmero do Render.
   As imagens de **marca** (`backend/static/brand/`) continuam versionadas no repo e são
@@ -72,7 +71,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ```bash
 cd backend
-cp .env.example .env   # preencha os valores (veja a tabela acima)
+cp .env.example .env   # preencha os valores (veja a tabela acima), incl. DATABASE_URL
 pip install --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ -r requirements.txt
 uvicorn server:app --reload --port 8000
 ```

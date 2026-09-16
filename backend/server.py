@@ -6,7 +6,7 @@ from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from db import PgJsonStore
 import os
 import io
 import asyncio
@@ -42,9 +42,7 @@ BRAND_SEAL_URL = "/static/brand/selo.jpg"
 OLD_EMERGENT_LOGO = "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/4y5mw8k0_85a45e10-cbc2-40bd-a704-38c569e7c65c.jpeg"
 OLD_EMERGENT_SEAL = "https://customer-assets.emergentagent.com/job_tourism-audio-guide/artifacts/6p4z5s8n_279fc9d7-7038-489d-befd-648ad42c1224.JPG"
 
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = PgJsonStore(os.environ['DATABASE_URL'])
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALG = "HS256"
@@ -1798,6 +1796,7 @@ async def create_inquiry(payload: InquiryCreate, authorization: Optional[str] = 
 # ========== STARTUP ==========
 @app.on_event("startup")
 async def startup_indexes_and_seed():
+    await db.connect()
     try:
         await db.users.create_index("email", unique=True)
         await db.users.create_index("user_id", unique=True)
@@ -1895,4 +1894,4 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    await db.close()

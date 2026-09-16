@@ -1,11 +1,11 @@
 # Turismo que se Sente — PRD (v3)
 
 ## Visão geral
-Aplicativo móvel **acessível e profissional** (Expo / React Native + FastAPI + MongoDB) que apresenta os principais pontos turísticos de **Natal/RN** com **audiodescrição em português**, multi-idioma (PT/EN/ES via LLM), marketplace de parceiros certificados, mapa real (OpenStreetMap), botão de emergência, painel administrativo blindado (JWT) e painel flutuante global de acessibilidade.
+Aplicativo móvel **acessível e profissional** (Expo / React Native + FastAPI + Postgres) que apresenta os principais pontos turísticos de **Natal/RN** com **audiodescrição em português**, multi-idioma (PT/EN/ES via LLM), marketplace de parceiros certificados, mapa real (OpenStreetMap), botão de emergência, painel administrativo blindado (JWT) e painel flutuante global de acessibilidade.
 
 ## Stack
 - **Frontend**: Expo SDK 54 + Expo Router (file-based), React Native 0.81, expo-speech (TTS pt-BR/en-US/es-ES), expo-haptics, expo-secure-store, @expo/vector-icons.
-- **Backend**: FastAPI + Motor (MongoDB async), bcrypt + PyJWT (admin), Emergent LLM Key (`gpt-4o-mini` para traduções).
+- **Backend**: FastAPI + asyncpg (Postgres/Neon, documentos JSONB via `backend/db.py`), bcrypt + PyJWT (admin), Emergent LLM Key (`gpt-4o-mini` para traduções).
 - **Identidade visual**: paleta roxo/violeta `#7C3AED` + fundo navy escuro `#0B1120` (WCAG AAA).
 
 ## Autenticação (dual)

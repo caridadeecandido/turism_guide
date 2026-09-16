@@ -17,9 +17,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.9"
       # Defina os valores abaixo no painel do Render (Environment). Não versione segredos.
-      - key: MONGO_URL
-        sync: false
-      - key: DB_NAME
+      - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         sync: false
